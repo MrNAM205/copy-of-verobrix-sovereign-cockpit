@@ -1,5 +1,5 @@
-
-import React, { useState } from 'react';
+import { useMemo } from 'react';
+import { BrowserRouter, Routes, Route, Outlet } from 'react-router-dom';
 import Sidebar from './components/Sidebar';
 import Dashboard from './components/Dashboard';
 import KnowledgeView from './components/KnowledgeView';
@@ -16,55 +16,21 @@ import PersonaManager from './components/PersonaManager';
 import TrustBuilder from './components/TrustBuilder';
 import TopicExplorer from './components/TopicExplorer';
 import RemedyTracker from './components/RemedyTracker';
-import { ArchiveEntry } from './types';
 import PlaybookNavigator from './components/PlaybookNavigator';
+import { useStore } from './lib/store';
 
 const App: React.FC = () => {
-  const [currentView, setCurrentView] = useState('dashboard');
-  const [activeResourceId, setActiveResourceId] = useState<string | null>(null);
-  const [archive, setArchive] = useState<ArchiveEntry[]>([]);
+  const sessionId = useMemo(() => `0x${Date.now().toString(16).toUpperCase()}`, []);
+  const { archive, addToArchive } = useStore();
 
-  const handleArchive = (entry: ArchiveEntry) => {
-    setArchive(prev => [...prev, entry]);
-  };
-
-  const handleNavigate = (view: string, resourceId?: string) => {
-    setCurrentView(view);
-    if (resourceId) {
-      setActiveResourceId(resourceId);
-    }
-  };
-
-  const renderView = () => {
-    switch (currentView) {
-      case 'dashboard': return <Dashboard />;
-      case 'topics': return <TopicExplorer onNavigate={handleNavigate} />;
-      case 'filing': return <FilingNavigator onNavigate={handleNavigate} />;
-      case 'remedy': return <RemedyTracker onNavigate={handleNavigate} />;
-      case 'playbooks': return <PlaybookNavigator />;
-      case 'identity': return <PersonaManager />;
-      case 'trust': return <TrustBuilder />;
-      case 'jarvis': return <Jarvis />;
-      case 'dialogos': return <Dialogos />;
-      case 'endorsement': return <EndorsementStudio />;
-      case 'vault': return <Vault />;
-      case 'knowledge': return <KnowledgeView />;
-      case 'cognition': return <CognitionConsole onArchive={handleArchive} />;
-      case 'drafter': return <Drafter onArchive={handleArchive} initialTemplateId={activeResourceId} />;
-      case 'scripts': return <ScriptViewer initialScriptId={activeResourceId} />;
-      case 'archive': return <Archive entries={archive} />;
-      default: return <Dashboard />;
-    }
-  };
-
-  return (
+  const Layout = () => (
     <div className="flex h-screen bg-slate-950 text-slate-200 font-sans overflow-hidden">
-      <Sidebar currentView={currentView} setView={setCurrentView} />
+      <Sidebar />
       <main className="flex-1 relative flex flex-col min-w-0">
         <header className="h-16 border-b border-sovereign-800/30 bg-slate-900 flex items-center justify-between px-8 shadow-sm shrink-0 z-20">
           <div className="flex items-center space-x-2">
             <span className="font-mono text-xs text-sovereign-600 tracking-widest">SESSION ID:</span>
-            <span className="font-mono text-xs text-slate-400">0x{Date.now().toString(16).toUpperCase()}</span>
+            <span className="font-mono text-xs text-slate-400">{sessionId}</span>
           </div>
           <div className="flex items-center space-x-4">
             <div className="flex items-center space-x-2 px-3 py-1 bg-sovereign-900/20 rounded border border-sovereign-800/50">
@@ -74,10 +40,36 @@ const App: React.FC = () => {
           </div>
         </header>
         <div className="flex-1 overflow-hidden relative">
-          {renderView()}
+          <Outlet />
         </div>
       </main>
     </div>
+  );
+
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Layout />}>
+          <Route index element={<Dashboard />} />
+          <Route path="topics" element={<TopicExplorer />} />
+          <Route path="filing" element={<FilingNavigator />} />
+          <Route path="remedy" element={<RemedyTracker />} />
+          <Route path="playbooks" element={<PlaybookNavigator />} />
+          <Route path="identity" element={<PersonaManager />} />
+          <Route path="trust" element={<TrustBuilder />} />
+          <Route path="jarvis" element={<Jarvis />} />
+          <Route path="dialogos" element={<Dialogos />} />
+          <Route path="endorsement" element={<EndorsementStudio />} />
+          <Route path="vault" element={<Vault />} />
+          <Route path="knowledge" element={<KnowledgeView />} />
+          <Route path="cognition" element={<CognitionConsole onArchive={addToArchive} />} />
+          <Route path="drafter" element={<Drafter onArchive={addToArchive} />} />
+          <Route path="drafter/:templateId" element={<Drafter onArchive={addToArchive} />} />
+          <Route path="scripts/:scriptId" element={<ScriptViewer />} />
+          <Route path="archive" element={<Archive entries={archive} />} />
+        </Route>
+      </Routes>
+    </BrowserRouter>
   );
 };
 

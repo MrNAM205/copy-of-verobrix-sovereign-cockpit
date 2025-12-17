@@ -1,14 +1,14 @@
-
 import React, { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
 import { TEMPLATES } from '../data/templates';
 import { Template, ArchiveEntry } from '../types';
 
 interface DrafterProps {
   onArchive: (entry: ArchiveEntry) => void;
-  initialTemplateId?: string | null;
 }
 
-const Drafter: React.FC<DrafterProps> = ({ onArchive, initialTemplateId }) => {
+const Drafter: React.FC<DrafterProps> = ({ onArchive }) => {
+  const { templateId } = useParams<{ templateId: string }>();
   const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(null);
   const [formData, setFormData] = useState<Record<string, string>>({});
   const [preview, setPreview] = useState<string>('');
@@ -16,11 +16,11 @@ const Drafter: React.FC<DrafterProps> = ({ onArchive, initialTemplateId }) => {
   const [completedSteps, setCompletedSteps] = useState<Record<number, boolean>>({});
 
   useEffect(() => {
-    if (initialTemplateId) {
-        const tmpl = TEMPLATES.find(t => t.id === initialTemplateId);
+    if (templateId) {
+        const tmpl = TEMPLATES.find(t => t.id === templateId);
         if (tmpl) handleTemplateSelect(tmpl);
     }
-  }, [initialTemplateId]);
+  }, [templateId]);
 
   const handleTemplateSelect = (template: Template) => {
     setSelectedTemplate(template);

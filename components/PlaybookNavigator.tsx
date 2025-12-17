@@ -1,10 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Playbook, PlaybookStep } from '../types';
 import { initialPlaybooks } from '../data/playbooks';
 
 const PlaybookNavigator: React.FC = () => {
     const [selectedPlaybook, setSelectedPlaybook] = useState<Playbook | null>(initialPlaybooks[0]);
-    const [completedSteps, setCompletedSteps] = useState<Record<string, boolean>>({});
+    const [completedSteps, setCompletedSteps] = useState<Record<string, boolean>>(() => {
+        const saved = localStorage.getItem('verobrix_playbook_progress');
+        return saved ? JSON.parse(saved) : {};
+    });
+
+    useEffect(() => {
+        localStorage.setItem('verobrix_playbook_progress', JSON.stringify(completedSteps));
+    }, [completedSteps]);
 
     const toggleStep = (stepId: string) => {
         setCompletedSteps(prev => ({

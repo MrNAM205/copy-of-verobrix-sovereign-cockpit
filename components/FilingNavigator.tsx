@@ -1,15 +1,24 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { WORKFLOWS, Workflow, WorkflowStep } from '../data/workflows';
 
-interface FilingNavigatorProps {
-    onNavigate: (view: string, resourceId?: string) => void;
-}
-
-const FilingNavigator: React.FC<FilingNavigatorProps> = ({ onNavigate }) => {
+const FilingNavigator: React.FC = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
   const [selectedWorkflow, setSelectedWorkflow] = useState<Workflow | null>(null);
   const [activeStepIndex, setActiveStepIndex] = useState(0);
   const [completedSteps, setCompletedSteps] = useState<Record<string, boolean>>({});
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const workflowId = params.get('workflowId');
+    if (workflowId) {
+      const workflow = WORKFLOWS.find(wf => wf.id === workflowId);
+      if (workflow) {
+        setSelectedWorkflow(workflow);
+      }
+    }
+  }, [location.search]);
 
   const handleWorkflowSelect = (wf: Workflow) => {
     setSelectedWorkflow(wf);
@@ -157,7 +166,7 @@ const FilingNavigator: React.FC<FilingNavigatorProps> = ({ onNavigate }) => {
                         <div className="flex flex-wrap gap-4 mb-8">
                              {selectedWorkflow.steps[activeStepIndex].recommendedScriptId && (
                                  <button 
-                                    onClick={() => onNavigate('scripts', selectedWorkflow.steps[activeStepIndex].recommendedScriptId)}
+                                    onClick={() => navigate(`/scripts/${selectedWorkflow.steps[activeStepIndex].recommendedScriptId}`)}
                                     className="flex items-center space-x-2 bg-blue-900/20 hover:bg-blue-900/40 px-4 py-3 rounded border border-blue-900/50 transition-colors group text-left"
                                  >
                                      <div className="p-2 bg-blue-900/30 rounded group-hover:bg-blue-800/50">
@@ -171,7 +180,7 @@ const FilingNavigator: React.FC<FilingNavigatorProps> = ({ onNavigate }) => {
                              )}
                              {selectedWorkflow.steps[activeStepIndex].recommendedTemplateId && (
                                  <button 
-                                    onClick={() => onNavigate('drafter', selectedWorkflow.steps[activeStepIndex].recommendedTemplateId)}
+                                    onClick={() => navigate(`/drafter/${selectedWorkflow.steps[activeStepIndex].recommendedTemplateId}`)}
                                     className="flex items-center space-x-2 bg-purple-900/20 hover:bg-purple-900/40 px-4 py-3 rounded border border-purple-900/50 transition-colors group text-left"
                                  >
                                      <div className="p-2 bg-purple-900/30 rounded group-hover:bg-purple-800/50">

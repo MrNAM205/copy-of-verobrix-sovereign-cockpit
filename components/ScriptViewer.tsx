@@ -1,14 +1,11 @@
-
 import React, { useState, useMemo, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
 import { SCRIPTS } from '../data/scripts';
 import { MOCK_CORPUS } from '../data/corpus';
 import { Script } from '../types';
 
-interface ScriptViewerProps {
-    initialScriptId?: string | null;
-}
-
-const ScriptViewer: React.FC<ScriptViewerProps> = ({ initialScriptId }) => {
+const ScriptViewer: React.FC = () => {
+  const { scriptId } = useParams<{ scriptId: string }>();
   const [selectedScript, setSelectedScript] = useState<Script | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
@@ -16,14 +13,14 @@ const ScriptViewer: React.FC<ScriptViewerProps> = ({ initialScriptId }) => {
   const [rolePlayLine, setRolePlayLine] = useState(0);
 
   useEffect(() => {
-    if (initialScriptId) {
-        const script = SCRIPTS.find(s => s.id === initialScriptId);
+    if (scriptId) {
+        const script = SCRIPTS.find(s => s.id === scriptId);
         if (script) {
             setSelectedScript(script);
             setRolePlayLine(0);
         }
     }
-  }, [initialScriptId]);
+  }, [scriptId]);
 
   const filteredScripts = useMemo(() => {
     return SCRIPTS.filter(script => {

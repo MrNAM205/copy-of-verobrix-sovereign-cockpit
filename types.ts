@@ -5,7 +5,8 @@ export enum CorpusType {
   RULE = 'RULE',
   MANUAL = 'MANUAL',
   CASE_LAW = 'CASE_LAW',
-  COMMENTARY = 'COMMENTARY'
+  COMMENTARY = 'COMMENTARY',
+  MAXIM = 'MAXIM',
 }
 
 export interface CorpusItem {
@@ -112,4 +113,27 @@ export interface Playbook {
   category: 'TRAFFIC' | 'COMMERCIAL' | 'TRUST' | 'TREATY' | 'INDIGENOUS';
   steps: PlaybookStep[];
   tags: string[];
+}
+
+export interface UccSection {
+  id: string;
+  title: string;
+  text: string;
+}
+
+export interface UccPart {
+  title: string;
+  sections: UccSection[];
+}
+
+export interface UccArticle {
+  title: string;
+  parts: UccPart[];
+}
+
+export interface Maxim {
+  id: string;
+  latin: string;
+  english: string;
+  explanation: string;
 }

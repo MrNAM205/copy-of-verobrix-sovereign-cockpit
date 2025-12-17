@@ -1,12 +1,10 @@
-
 import React from 'react';
+import { Link, useLocation } from 'react-router-dom';
 
-interface SidebarProps {
-  currentView: string;
-  setView: (view: string) => void;
-}
+const Sidebar: React.FC = () => {
+  const location = useLocation();
+  const currentView = location.pathname.substring(1) || 'dashboard';
 
-const Sidebar: React.FC<SidebarProps> = ({ currentView, setView }) => {
   const navItems = [
     { id: 'dashboard', label: 'Cockpit Dashboard', icon: 'M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z' },
     { id: 'topics', label: 'Topic Explorer', icon: 'M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10' },
@@ -33,9 +31,9 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, setView }) => {
       </div>
       <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
         {navItems.map((item) => (
-          <button
+          <Link
             key={item.id}
-            onClick={() => setView(item.id)}
+            to={item.id === 'dashboard' ? '/' : `/${item.id}`}
             className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-300 group ${currentView === item.id
                 ? 'bg-sovereign-900/40 text-sovereign-300 border border-sovereign-700/50 shadow-[0_0_15px_rgba(197,131,52,0.1)]'
                 : 'text-slate-400 hover:text-sovereign-200 hover:bg-slate-800'
@@ -45,7 +43,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, setView }) => {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d={item.icon} />
             </svg>
             <span className="font-medium text-sm tracking-wide text-left">{item.label}</span>
-          </button>
+          </Link>
         ))}
       </nav>
       <div className="p-4 border-t border-sovereign-800/30">

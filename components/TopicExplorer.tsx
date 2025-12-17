@@ -1,13 +1,9 @@
-
 import React, { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { SCRIPTS } from '../data/scripts';
 import { TEMPLATES } from '../data/templates';
 import { WORKFLOWS } from '../data/workflows';
 import { MOCK_CORPUS } from '../data/corpus';
-
-interface TopicExplorerProps {
-    onNavigate: (view: string, resourceId?: string) => void;
-}
 
 const TOPICS = [
     { id: 'identity', label: 'Identity & Status', tags: ['status', 'identity', 'vital-records', 'authentication', 'pro-se', 'sui-juris', 'domicile', 'indigenous', 'undrip'] },
@@ -18,7 +14,8 @@ const TOPICS = [
     { id: 'trusts', label: 'Trusts & Estate', tags: ['trust', 'trusts', 'estate', 'banking', 'equity', 'property'] },
 ];
 
-const TopicExplorer: React.FC<TopicExplorerProps> = ({ onNavigate }) => {
+const TopicExplorer: React.FC = () => {
+    const navigate = useNavigate();
     const [selectedTopicId, setSelectedTopicId] = useState<string>(TOPICS[0].id);
 
     const activeTopic = TOPICS.find(t => t.id === selectedTopicId);
@@ -112,7 +109,7 @@ const TopicExplorer: React.FC<TopicExplorerProps> = ({ onNavigate }) => {
                                         <h3 className="font-bold text-slate-200">{wf.title}</h3>
                                         <p className="text-xs text-slate-500 mt-1 mb-3">{wf.description}</p>
                                         <button 
-                                            onClick={() => onNavigate('filing', wf.id)}
+                                            onClick={() => navigate(`/filing?workflowId=${wf.id}`)}
                                             className="text-xs bg-emerald-900/30 text-emerald-400 px-3 py-1.5 rounded border border-emerald-900 hover:bg-emerald-900/50"
                                         >
                                             OPEN GUIDE &rarr;
@@ -130,7 +127,7 @@ const TopicExplorer: React.FC<TopicExplorerProps> = ({ onNavigate }) => {
                             {filteredData.scripts.length > 0 ? (
                                 <div className="space-y-3">
                                     {filteredData.scripts.map(s => (
-                                        <div key={s.id} className="bg-slate-900 border border-slate-800 rounded p-3 flex justify-between items-center group cursor-pointer hover:border-blue-900/50" onClick={() => onNavigate('scripts', s.id)}>
+                                        <div key={s.id} className="bg-slate-900 border border-slate-800 rounded p-3 flex justify-between items-center group cursor-pointer hover:border-blue-900/50" onClick={() => navigate(`/scripts/${s.id}`)}>
                                             <div>
                                                 <h3 className="font-bold text-slate-300 text-sm group-hover:text-blue-400">{s.title}</h3>
                                                 <span className="text-[10px] text-slate-500">{s.category}</span>
@@ -158,7 +155,7 @@ const TopicExplorer: React.FC<TopicExplorerProps> = ({ onNavigate }) => {
                                             <span className="text-[10px] bg-slate-800 px-2 py-0.5 rounded text-slate-400">{t.jurisdiction}</span>
                                         </div>
                                         <button 
-                                            onClick={() => onNavigate('drafter', t.id)}
+                                            onClick={() => navigate(`/drafter/${t.id}`)}
                                             className="text-xs bg-purple-900/30 text-purple-400 px-3 py-1.5 rounded border border-purple-900 hover:bg-purple-900/50"
                                         >
                                             DRAFT DOCUMENT &rarr;

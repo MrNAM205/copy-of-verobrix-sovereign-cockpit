@@ -1,5 +1,5 @@
-
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { put, list } from '../lib/store';
 
 interface RemedyProcess {
@@ -19,7 +19,8 @@ interface RemedyProcess {
     };
 }
 
-const RemedyTracker: React.FC<{ onNavigate: (view: string, id: string) => void }> = ({ onNavigate }) => {
+const RemedyTracker: React.FC = () => {
+    const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState<'admin' | 'fees'>('admin');
     const [processes, setProcesses] = useState<RemedyProcess[]>([]);
     const [newProcess, setNewProcess] = useState({ target: '', ref: '' });
@@ -155,7 +156,7 @@ REMIT TO:
                                     <div className="flex gap-4 border-t border-slate-800 pt-4">
                                         {p.step === 1 && (
                                             <button 
-                                                onClick={() => onNavigate('drafter', 'conditional-acceptance-offer')}
+                                                onClick={() => navigate('/drafter/conditional-acceptance-offer')}
                                                 className="flex-1 bg-slate-800 hover:bg-slate-700 text-white py-2 rounded text-xs font-mono border border-slate-700"
                                             >
                                                 DRAFT NOTICE #1
@@ -163,7 +164,7 @@ REMIT TO:
                                         )}
                                         {p.step === 2 && (
                                             <button 
-                                                onClick={() => onNavigate('drafter', 'notice-fault-cure')}
+                                                onClick={() => navigate('/drafter/notice-fault-cure')}
                                                 className="flex-1 bg-slate-800 hover:bg-slate-700 text-white py-2 rounded text-xs font-mono border border-slate-700"
                                             >
                                                 DRAFT NOTICE #2
@@ -171,7 +172,7 @@ REMIT TO:
                                         )}
                                         {p.step === 3 && p.status !== 'DEFAULT' && (
                                             <button 
-                                                onClick={() => onNavigate('drafter', 'certificate-non-response')}
+                                                onClick={() => navigate('/drafter/certificate-non-response')}
                                                 className="flex-1 bg-slate-800 hover:bg-slate-700 text-white py-2 rounded text-xs font-mono border border-slate-700"
                                             >
                                                 DRAFT DEFAULT CERT
