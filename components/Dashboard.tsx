@@ -54,7 +54,7 @@ const Dashboard: React.FC = () => {
                     Gemini 2.5 Flash active. Synthesizing lawful doctrine and refuting pseudotheory with high precision.
                 </p>
                 <div className="bg-slate-950 p-3 rounded border border-slate-800 font-mono text-xs text-sovereign-500">
-                    > SYSTEM READY<br/>> WAITING FOR QUERY...
+                    {'>'} SYSTEM READY<br/>{'>'} WAITING FOR QUERY...
                 </div>
             </div>
 

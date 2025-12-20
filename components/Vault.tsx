@@ -1,16 +1,99 @@
-
 import React, { useState } from 'react';
-import { list } from '../lib/store';
-import { Persona } from '../types';
+import { useStore } from '../lib/store';
+import { Persona, ArchiveEntry } from '../types';
+import { useNavigate } from 'react-router-dom';
 
 const Vault: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'instruments' | 'personas'>('instruments');
+  const [selectedInstrument, setSelectedInstrument] = useState<ArchiveEntry | null>(null);
   
-  const instruments = list<any>('instruments');
-  const personas = list<Persona>('personas');
+  const instruments = useStore((state) => state.archive);
+  const personas = useStore((state) => state.personas);
+  const navigate = useNavigate();
+
+  const InstrumentCard = ({ item }: { item: ArchiveEntry }) => {
+    const details = JSON.parse(item.details);
+    return (
+      <div className="bg-slate-900 border border-slate-800 rounded p-4 hover:border-sovereign-800/50 transition-colors shadow-lg flex flex-col">
+        <div className="flex justify-between items-start mb-2">
+          <span className={`text-[10px] font-bold font-mono px-2 py-0.5 rounded border ${
+              details.type === 'SignedDocument' ? 'bg-indigo-900/30 text-indigo-400 border-indigo-900' :
+              'bg-emerald-900/30 text-emerald-400 border-emerald-900'
+          }`}>
+              {details.type || item.type}
+          </span>
+          <span className="text-[10px] text-slate-500 font-mono">
+              {new Date(details.createdAt || item.timestamp).toLocaleDateString()}
+          </span>
+        </div>
+
+        <div className="flex-1 bg-slate-950 p-3 rounded border border-slate-800 font-mono text-xs text-slate-400 mb-3 overflow-hidden relative h-24">
+            <div className="absolute inset-0 bg-gradient-to-b from-transparent to-slate-950 opacity-50 pointer-events-none"></div>
+            {details.contentText ? `${details.contentText.slice(0, 150)}...` : item.summary}
+        </div>
+
+        {details.bundleHash && (
+            <div className="mb-2">
+                <div className="text-[9px] text-slate-600 uppercase">Fingerprint</div>
+                <div className="text-[9px] font-mono text-emerald-500 truncate">{details.bundleHash}</div>
+            </div>
+        )}
+        
+        {details.extracted && (
+            <div className="mb-2">
+                <div className="text-[9px] text-slate-600 uppercase">Extracted Data</div>
+                <div className="text-[9px] font-mono text-sovereign-500">
+                    {details.extracted.creditor || 'Unknown Creditor'} - {details.extracted.amountDue || 'N/A'}
+                </div>
+            </div>
+        )}
+
+        <button onClick={() => setSelectedInstrument(item)} className="w-full mt-2 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-mono rounded border border-slate-700">
+            VIEW DETAILS
+        </button>
+      </div>
+    )
+  }
+
+  const InstrumentDetailModal = ({ item, onClose }: { item: ArchiveEntry, onClose: () => void }) => {
+    const details = JSON.parse(item.details);
+    const hasFinancialIds = details.financialIdentifiers && (details.financialIdentifiers.cusip || details.financialIdentifiers.bondNumber);
+
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
+        <div className="bg-slate-900 border border-sovereign-700 rounded-lg max-w-3xl w-full max-h-[90vh] overflow-y-auto p-8 shadow-2xl">
+          <div className="flex justify-between items-center border-b border-slate-800 pb-4 mb-6">
+            <h2 className="text-2xl font-serif font-bold text-sovereign-200">{item.title}</h2>
+            <button onClick={onClose} className="text-slate-500 hover:text-white">&times;</button>
+          </div>
+          <div className="space-y-4">
+            <pre className="text-xs font-mono text-slate-300 whitespace-pre-wrap bg-slate-950 p-4 rounded border border-slate-800">{JSON.stringify(details, null, 2)}</pre>
+            
+            {hasFinancialIds && (
+                 <div className="p-4 bg-amber-900/10 border border-amber-800/50 rounded-lg">
+                    <h3 className="font-bold text-amber-400 mb-2">Financial Identifiers Found</h3>
+                    {details.financialIdentifiers.cusip && <p className="text-xs font-mono text-slate-300">CUSIP: {details.financialIdentifiers.cusip}</p>}
+                    {details.financialIdentifiers.bondNumber && <p className="text-xs font-mono text-slate-300">Bond #: {details.financialIdentifiers.bondNumber}</p>}
+                </div>
+            )}
+
+            {details.caseNumber && (
+              <button 
+                onClick={() => navigate(`/foia?caseNumber=${encodeURIComponent(details.caseNumber)}&creditor=${encodeURIComponent(details.creditor || '')}`)}
+                className="w-full mt-2 py-2 bg-sovereign-700 hover:bg-sovereign-600 text-white font-bold font-serif rounded shadow-lg"
+              >
+                Generate FOIA Request for Case: {details.caseNumber}
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div className="h-full bg-slate-950 p-8 overflow-y-auto">
+      {selectedInstrument && <InstrumentDetailModal item={selectedInstrument} onClose={() => setSelectedInstrument(null)} />}
       <div className="max-w-6xl mx-auto space-y-6">
         <div className="flex items-center justify-between border-b border-sovereign-800 pb-4">
             <div className="flex items-center space-x-4">
@@ -47,46 +130,7 @@ const Vault: React.FC = () => {
                         The Vault is empty. Process instruments via JARVIS or Endorsement Studio.
                     </div>
                 ) : (
-                    instruments.map((item) => (
-                        <div key={item.id} className="bg-slate-900 border border-slate-800 rounded p-4 hover:border-sovereign-800/50 transition-colors shadow-lg flex flex-col">
-                            <div className="flex justify-between items-start mb-2">
-                                <span className={`text-[10px] font-bold font-mono px-2 py-0.5 rounded border ${
-                                    item.type === 'SignedDocument' ? 'bg-indigo-900/30 text-indigo-400 border-indigo-900' :
-                                    'bg-emerald-900/30 text-emerald-400 border-emerald-900'
-                                }`}>
-                                    {item.type}
-                                </span>
-                                <span className="text-[10px] text-slate-500 font-mono">
-                                    {new Date(item.createdAt).toLocaleDateString()}
-                                </span>
-                            </div>
-
-                            <div className="flex-1 bg-slate-950 p-3 rounded border border-slate-800 font-mono text-xs text-slate-400 mb-3 overflow-hidden relative">
-                                <div className="absolute inset-0 bg-gradient-to-b from-transparent to-slate-950 opacity-50 pointer-events-none"></div>
-                                {item.contentText.slice(0, 150)}...
-                            </div>
-
-                            {item.hash && (
-                                <div className="mb-2">
-                                    <div className="text-[9px] text-slate-600 uppercase">Fingerprint</div>
-                                    <div className="text-[9px] font-mono text-emerald-500 truncate">{item.hash}</div>
-                                </div>
-                            )}
-                            
-                            {item.extracted && (
-                                <div className="mb-2">
-                                    <div className="text-[9px] text-slate-600 uppercase">Extracted Data</div>
-                                    <div className="text-[9px] font-mono text-sovereign-500">
-                                        {item.extracted.creditor || 'Unknown Creditor'} - {item.extracted.amount || 'N/A'}
-                                    </div>
-                                </div>
-                            )}
-
-                            <button className="w-full mt-2 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-mono rounded border border-slate-700">
-                                VIEW DETAILS
-                            </button>
-                        </div>
-                    ))
+                    instruments.map((item) => <InstrumentCard key={item.id} item={item} />)
                 )}
             </div>
         ) : (

@@ -53,15 +53,21 @@ const Drafter: React.FC<DrafterProps> = ({ onArchive }) => {
     setIsSealed(false);
   };
 
-  const handleSeal = () => {
+  const calculateChecksum = async (text: string): Promise<string> => {
+    const hashBuffer = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  };
+
+  const handleSeal = async () => {
     if (!preview || isSealed) return;
-    const hash = Math.random().toString(16).substring(2).toUpperCase() + Math.random().toString(16).substring(2).toUpperCase();
+    const hash = await calculateChecksum(preview);
     const timestamp = new Date().toISOString();
     
     const sealBlock = `\n\n==================================================\n` +
     `   [ SOVEREIGN SEAL OF AUTHORSHIP ]\n` +
     `   DATE: ${timestamp.split('T')[0]} | TIME: ${timestamp.split('T')[1].replace('Z','')} Z\n` +
-    `   HASH: 0x${hash}\n` +
+    `   SHA256: ${hash}\n` +
     `   NOTICE: THIS INSTRUMENT IS EXECUTED UNDER SEAL AND BOND.\n` +
     `==================================================`;
 
@@ -69,8 +75,9 @@ const Drafter: React.FC<DrafterProps> = ({ onArchive }) => {
     setIsSealed(true);
   };
 
-  const handleSaveToArchive = () => {
+  const handleSaveToArchive = async () => {
     if (!selectedTemplate || !preview) return;
+    const checksum = await calculateChecksum(preview);
     
     onArchive({
       id: `draft-${Date.now()}`,
@@ -79,7 +86,7 @@ const Drafter: React.FC<DrafterProps> = ({ onArchive }) => {
       title: `Draft: ${selectedTemplate.name}`,
       summary: `Generated remedy draft for ${selectedTemplate.jurisdiction}`,
       details: preview,
-      checksum: Math.random().toString(36).substring(7)
+      checksum,
     });
     alert("Draft archived successfully.");
   };

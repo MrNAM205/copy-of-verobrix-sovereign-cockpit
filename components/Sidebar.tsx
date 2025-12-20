@@ -1,7 +1,11 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 
-const Sidebar: React.FC = () => {
+interface SidebarProps {
+  onOpenPrinciples: () => void;
+}
+
+const Sidebar: React.FC<SidebarProps> = ({ onOpenPrinciples }) => {
   const location = useLocation();
   const currentView = location.pathname.substring(1) || 'dashboard';
 
@@ -12,6 +16,7 @@ const Sidebar: React.FC = () => {
     { id: 'identity', label: 'Identity Manager', icon: 'M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2' },
     { id: 'trust', label: 'Trust Builder', icon: 'M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4' },
     { id: 'filing', label: 'Filing Navigator', icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01' },
+    { id: 'foia', label: 'FOIA Generator', icon: 'M15 12a3 3 0 11-6 0 3 3 0 016 0z' },
     { id: 'jarvis', label: 'JARVIS Parser', icon: 'M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z' },
     { id: 'dialogos', label: 'Dialogos Drafter', icon: 'M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z' },
     { id: 'endorsement', label: 'Endorsement Studio', icon: 'M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z' },
@@ -47,6 +52,12 @@ const Sidebar: React.FC = () => {
         ))}
       </nav>
       <div className="p-4 border-t border-sovereign-800/30">
+        <button 
+          onClick={onOpenPrinciples} 
+          className="w-full text-center text-xs text-slate-500 hover:text-sovereign-300 font-mono underline mb-2"
+        >
+          Guiding Principles
+        </button>
         <div className="text-[10px] text-slate-600 font-mono text-center">
           SYSTEM STATUS: ONLINE<br />
           SOVEREIGNTY: ASSERTED

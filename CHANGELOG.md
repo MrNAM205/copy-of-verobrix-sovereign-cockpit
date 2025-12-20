@@ -1,9 +1,18 @@
 # Changelog
 
-## [Unreleased] - 2025-12-14
+## [Unreleased] - 2025-12-18
 
 ### Security
+- **API Key Management**: Replaced hardcoded API key with environment variables using `.env` file to prevent key leakage. The `geminiService.ts` now securely loads the API key using Vite's `import.meta.env`.
 - Updated `.gitignore` to include `.env*` files, preventing sensitive API keys from being committed to the repository.
+
+### Added
+- **Endorsement Allonge Generator**: Added a new component `EndorsementAllonge.tsx` that allows users to generate endorsement allonges for financial instruments.
+
+### Dependencies
+- Added `dotenv` package to manage environment variables.
+
+## [Unreleased] - 2025-12-14
 
 ### Tooling
 - Integrated ESLint and Prettier to enforce consistent code style and identify potential issues.

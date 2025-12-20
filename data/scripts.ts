@@ -26,6 +26,30 @@ I respectfully request that the court clarify for the record the nature of this 
         ]
     },
     {
+        id: 'declaration-of-status',
+        title: 'Declaration of Status',
+        category: 'COURT',
+        description: 'A comprehensive opening statement declaring your standing as an Authorized Representative.',
+        tags: ['status', 'jurisdiction', 'pro-se', 'sui-juris', 'authorized-representative'],
+        content: `Your Honor, for the record:
+
+I am here by special appearance, in propria persona, sui juris. I am the Authorized Representative for the defendant, the legal entity named [ALL CAPS NAME].
+
+I am here to settle this matter in honor and good faith.
+
+Before we proceed, I must ask the court to clarify its jurisdiction. Is this an Article III court operating under Common Law, or an administrative court operating under commercial statutes?
+
+I also reserve all my rights, waiving none, explicitly under UCC 1-308.
+
+I am ready to settle the account for the defendant as soon as the court has established its jurisdiction on the record.`,
+        tips: [
+            "This is an advanced, multi-part assertion. Practice it.",
+            "Deliver it calmly and confidently. Do not be emotional.",
+            "It combines the strongest elements: Special Appearance, In Propria Persona, Sui Juris, and Authorized Representative.",
+            "It ends with an offer to settle, which is an honorable position."
+        ]
+    },
+    {
         id: 'undrip-court-assertion',
         title: 'UNDRIP Indigenous Assertion',
         category: 'COURT',

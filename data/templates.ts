@@ -177,7 +177,54 @@ __________________________
 {{sender}}
 Aggrieved Party`
   },
-  // ... (Keep existing templates, ensuring UCC1, etc are preserved) ...
+  {
+    id: 'notice-special-appearance',
+    name: 'Notice of Special Appearance',
+    description: 'Notice to the court that you are appearing for the sole purpose of challenging jurisdiction.',
+    jurisdiction: 'Universal',
+    discernment: {
+        lawful: "A special appearance is a well-established legal procedure to challenge jurisdiction without submitting to it.",
+        contested: "Courts may attempt to ignore a special appearance and demand a plea. Persistence is key.",
+        utility: "Avoids granting jurisdiction by consent. Preserves all rights.",
+        outcome: "Forces the court to prove its jurisdiction on the record."
+    },
+    instructions: [
+        "File this as your very first response to any summons.",
+        "Do not engage in any other motions or arguments until jurisdiction is settled.",
+        "State clearly at the hearing: 'I am here by special appearance to challenge jurisdiction.'"
+    ],
+    fields: [
+        { key: 'court_name', label: 'Court Name', placeholder: 'District Court of...', type: 'text'},
+        { key: 'case_no', label: 'Case Number', placeholder: 'Case #', type: 'text'},
+        { key: 'party_name', label: 'Your Name', placeholder: 'Your Name', type: 'text'},
+    ],
+    content: `IN THE {{court_name}}
+
+{{party_name}},
+    Claimant,
+v.
+[PROSECUTION/PLAINTIFF],
+    Respondent.
+
+Case No.: {{case_no}}
+
+NOTICE OF SPECIAL APPEARANCE
+
+COMES NOW {{party_name}}, a living soul, making a special appearance before this honorable court, not a general appearance. This appearance is for the sole and express purpose of challenging the jurisdiction of this court over the aforementioned living soul.
+
+Claimant does not consent to these proceedings and explicitly reserves all rights, waiving none, pursuant to UCC 1-308.
+
+This court is hereby challenged to produce, on the record, verified evidence of its subject-matter jurisdiction over this matter and its personal jurisdiction over the Claimant.
+
+Until such time as jurisdiction is proven on the record, any further proceedings are void ab initio.
+
+Respectfully submitted,
+
+__________________________
+{{party_name}}
+All Rights Reserved
+`
+  },
   {
     id: 'ucc1-financing',
     name: 'UCC-1 Financing Statement',

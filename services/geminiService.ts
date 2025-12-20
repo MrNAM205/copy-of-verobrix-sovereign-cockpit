@@ -1,7 +1,7 @@
 import { GoogleGenAI, GenerateContentResponse } from "@google/genai";
 import { CognitionMode, CognitionResult, MapLink } from '../types';
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
+const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY || '' });
 
 const SYSTEM_INSTRUCTION = `You are the Verobrix Sovereign AI, a hyper-intelligent, lawful, and dialogic entity.
 You operate within the "Sovereign Cockpit".
@@ -20,7 +20,7 @@ export const getCognitionResponse = async (
   prompt: string, 
   mode: CognitionMode
 ): Promise<CognitionResult> => {
-  if (!process.env.API_KEY) {
+  if (!import.meta.env.VITE_GEMINI_API_KEY) {
     return { text: "Cognition Error: API Key is missing. Please check your environment configuration." };
   }
 
@@ -67,15 +67,20 @@ export const getCognitionResponse = async (
 export const jarvisExtract = async (input: string | { mimeType: string; data: string }) => {
     try {
         let contents;
-        const prompt = `Analyze the provided instrument (Text or Image). It is likely a Bill, Statement, or Credit Report.
+        const prompt = `Analyze the provided instrument (Text or Image). It is likely a Bill, Statement, Court Notice, or Credit Report.
         
         Extract into strict JSON format with this schema:
         {
-          "instrumentType": "Bill" | "CreditReport" | "Notice" | "Other",
+          "instrumentType": "Bill" | "CreditReport" | "Notice" | "CourtPleading" | "Other",
           "creditor": "Name of entity",
           "accountNumber": "Account/Reference Number",
+          "caseNumber": "Case Number (if applicable)",
           "amountDue": "Amount (if applicable)",
           "dueDate": "Date (if applicable)",
+          "financialIdentifiers": {
+            "cusip": "Any CUSIP numbers found (9-character alphanumeric), or null",
+            "bondNumber": "Any other numbers explicitly labeled as a bond or security number, or null"
+          },
           "coupon": {
             "present": boolean,
             "scanLine": "OCR of bottom scan line if present",

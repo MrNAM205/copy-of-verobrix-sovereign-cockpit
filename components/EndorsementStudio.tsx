@@ -1,7 +1,8 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { generateP256, sha256Bytes, signP256, exportPublicKey } from '../lib/crypto';
-import { put } from '../lib/store';
+import { useStore } from '../lib/store';
+import { ArchiveEntry } from '../types';
 
 const EndorsementStudio: React.FC = () => {
   const [keys, setKeys] = useState<CryptoKeyPair | null>(null);
@@ -115,19 +116,32 @@ const EndorsementStudio: React.FC = () => {
     setStep(3);
   };
 
+  const addToArchive = useStore((state) => state.addToArchive);
+
   const handleSave = () => {
     if (!keys || !sig) return;
+    
     const id = crypto.randomUUID();
-    put('instruments', id, {
-        id,
+    const newEntry: ArchiveEntry = {
+      id,
+      timestamp: Date.now(),
+      type: 'DRAFT', // This is a signed draft
+      title: `Signed Endorsement: ${file?.name || 'Text Document'}`,
+      summary: `A document was cryptographically signed and bundled. Hash: ${hash.substring(0, 12)}...`,
+      details: JSON.stringify({
         type: 'SignedDocument',
         source: file ? 'File + Text Bundle' : 'Text Endorsement',
         filename: file?.name,
         contentText: text,
         bundleHash: hash,
         signature: sig,
+        publicKeyJwk,
         createdAt: new Date().toISOString()
-    });
+      }, null, 2),
+      checksum: hash, // The SHA-256 hash serves as the checksum
+    };
+
+    addToArchive(newEntry);
     alert('Endorsed instrument bundled and archived in Vault.');
   };
 

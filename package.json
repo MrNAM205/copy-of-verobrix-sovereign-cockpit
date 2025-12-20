@@ -12,9 +12,10 @@
     "test": "jest"
   },
   "dependencies": {
+    "@google/genai": "^1.31.0",
+    "dotenv": "^17.2.3",
     "react": "^19.2.1",
     "react-dom": "^19.2.1",
-    "@google/genai": "^1.31.0",
     "react-router-dom": "^6.23.1",
     "zustand": "^4.5.2"
   },

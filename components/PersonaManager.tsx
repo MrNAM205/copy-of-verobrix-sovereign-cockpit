@@ -1,14 +1,16 @@
-
 import React, { useState } from 'react';
 import { Persona } from '../types';
-import { put } from '../lib/store';
+import { useStore } from '../lib/store';
+import StatusSelector from './StatusSelector';
 
 const PersonaManager: React.FC = () => {
   const [givenName, setGivenName] = useState('');
   const [familyName, setFamilyName] = useState('');
   const [tradeNameAllCaps, setTradeNameAllCaps] = useState('');
   const [mailingAddress, setMailingAddress] = useState('');
-  const [domicileDeclaration, setDomicileDeclaration] = useState('Domiciled on the land, without the United States, not in commerce.');
+  const [domicileDeclaration, setDomicileDeclaration] = useState('Domiciled on the land and soil of [State], a constituent republic of the Union, without the United States.');
+
+  const addPersona = useStore((state) => state.addPersona);
 
   const handleSave = () => {
     if (!givenName || !familyName || !tradeNameAllCaps) {
@@ -26,7 +28,7 @@ const PersonaManager: React.FC = () => {
       keyPairId: 'default', // Placeholder for future crypto integration
       createdAt: new Date().toISOString()
     };
-    put('personas', persona.id, persona);
+    addPersona(persona);
     
     // Reset form
     setGivenName('');
@@ -47,7 +49,7 @@ const PersonaManager: React.FC = () => {
             </div>
             <div>
                 <h2 className="text-2xl font-serif font-bold text-sovereign-200">Identity Manager</h2>
-                <p className="text-sm text-slate-400 font-mono">Separate the Living Man from the Legal Fiction</p>
+                <p className="text-sm text-slate-400 font-mono">Distinguish Between Natural Person and Legal Entity</p>
             </div>
         </div>
 
@@ -56,11 +58,11 @@ const PersonaManager: React.FC = () => {
                 <div className="bg-slate-900 border border-slate-800 rounded p-6 shadow-lg">
                     <h3 className="text-sm font-bold text-emerald-500 uppercase tracking-widest mb-4 flex items-center">
                         <span className="w-2 h-2 bg-emerald-500 rounded-full mr-2"></span>
-                        Living Status (Sui Juris)
+                        Natural Person (Principal)
                     </h3>
                     <div className="space-y-4">
                         <div>
-                            <label className="block text-xs text-slate-400 mb-1 font-mono">Given Name</label>
+                            <label className="block text-xs text-slate-400 mb-1 font-mono">Given Name(s)</label>
                             <input
                                 className="w-full bg-slate-950 border border-slate-700 text-slate-200 rounded p-2 text-sm focus:border-emerald-500 focus:outline-none"
                                 placeholder="John-Henry"
@@ -78,28 +80,29 @@ const PersonaManager: React.FC = () => {
                             />
                         </div>
                         <div>
-                            <label className="block text-xs text-slate-400 mb-1 font-mono">Domicile Declaration (Sovereign)</label>
+                            <label className="block text-xs text-slate-400 mb-1 font-mono">Affidavit of Domicile</label>
                             <textarea
                                 className="w-full bg-slate-950 border border-slate-700 text-slate-200 rounded p-2 text-sm focus:border-emerald-500 focus:outline-none h-24"
-                                placeholder="e.g., domiciled on the land..."
+                                placeholder="e.g., Domiciled on the land and soil of..."
                                 value={domicileDeclaration}
                                 onChange={e => setDomicileDeclaration(e.target.value)}
                             />
-                            <p className="text-[10px] text-slate-500 mt-1 italic">This declaration appears in your affidavits but is not used for postal delivery.</p>
+                            <p className="text-[10px] text-slate-500 mt-1 italic">For use in affidavits; not for postal delivery.</p>
                         </div>
                     </div>
                 </div>
+                <StatusSelector />
             </div>
 
             <div className="space-y-6">
                  <div className="bg-slate-900 border border-slate-800 rounded p-6 shadow-lg">
                     <h3 className="text-sm font-bold text-red-500 uppercase tracking-widest mb-4 flex items-center">
                         <span className="w-2 h-2 bg-red-500 rounded-full mr-2"></span>
-                        Legal Fiction (Ens Legis)
+                        Legal Entity (Agent/Trust)
                     </h3>
                     <div className="space-y-4">
                         <div>
-                            <label className="block text-xs text-slate-400 mb-1 font-mono">Trade Name (ALL CAPS)</label>
+                            <label className="block text-xs text-slate-400 mb-1 font-mono">Entity Name (as on documents)</label>
                             <input
                                 className="w-full bg-slate-950 border border-slate-700 text-slate-200 rounded p-2 text-sm focus:border-red-500 focus:outline-none uppercase"
                                 placeholder="JOHN HENRY DOE"
@@ -108,7 +111,7 @@ const PersonaManager: React.FC = () => {
                             />
                         </div>
                          <div>
-                            <label className="block text-xs text-slate-400 mb-1 font-mono">Mailing Address (Deliverable)</label>
+                            <label className="block text-xs text-slate-400 mb-1 font-mono">Mailing Address (for service)</label>
                             <input
                                 className="w-full bg-slate-950 border border-slate-700 text-slate-200 rounded p-2 text-sm focus:border-red-500 focus:outline-none"
                                 placeholder="123 Main St, City, State ZIP"
@@ -116,16 +119,16 @@ const PersonaManager: React.FC = () => {
                                 onChange={e => setMailingAddress(e.target.value)}
                             />
                             <p className="text-[10px] text-slate-500 mt-1 italic">
-                                Required for receiving notices. Use c/o or box number if privacy is needed.
+                                A deliverable address for receiving official notices.
                             </p>
                         </div>
                     </div>
                 </div>
 
                 <div className="bg-sovereign-900/10 border border-sovereign-800/30 rounded p-4">
-                    <h4 className="text-xs font-bold text-sovereign-400 uppercase mb-2">Lawful Note</h4>
+                    <h4 className="text-xs font-bold text-sovereign-400 uppercase mb-2">Operational Note</h4>
                     <p className="text-xs text-slate-400 leading-relaxed">
-                        By separating these identities, you create a "firewall" between the living man and the commercial liability of the fiction. The Mailing Address attaches to the Fiction; the Domicile attaches to the Man.
+                        This distinction establishes a "firewall" between the natural person (the principal) and the commercial liability of the legal entity (the agent). The Mailing Address is for the entity; the Domicile is for the principal.
                     </p>
                 </div>
 
@@ -133,7 +136,7 @@ const PersonaManager: React.FC = () => {
                     onClick={handleSave}
                     className="w-full py-3 bg-sovereign-700 hover:bg-sovereign-600 text-white font-bold font-serif rounded shadow-lg transition-all"
                 >
-                    ESTABLISH PERSONA
+                    CREATE SECURED PERSONA
                 </button>
             </div>
         </div>

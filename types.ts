@@ -137,3 +137,20 @@ export interface Maxim {
   english: string;
   explanation: string;
 }
+
+export interface RemedyProcess {
+    id: string;
+    targetName: string;
+    referenceNo: string;
+    status: 'ACTIVE' | 'DEFAULT' | 'CLOSED';
+    step: 1 | 2 | 3;
+    dates: {
+        step1?: string;
+        step2?: string;
+        step3?: string;
+    };
+    tracking: {
+        step1?: string;
+        step2?: string;
+    };
+}

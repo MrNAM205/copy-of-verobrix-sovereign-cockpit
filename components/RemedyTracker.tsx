@@ -1,28 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { put, list } from '../lib/store';
-
-interface RemedyProcess {
-    id: string;
-    targetName: string;
-    referenceNo: string;
-    status: 'ACTIVE' | 'DEFAULT' | 'CLOSED';
-    step: 1 | 2 | 3;
-    dates: {
-        step1?: string;
-        step2?: string;
-        step3?: string;
-    };
-    tracking: {
-        step1?: string;
-        step2?: string;
-    };
-}
+import { useStore } from '../lib/store';
+import { RemedyProcess } from '../types';
 
 const RemedyTracker: React.FC = () => {
     const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState<'admin' | 'fees'>('admin');
-    const [processes, setProcesses] = useState<RemedyProcess[]>([]);
+    const processes = useStore((state) => state.remedies);
+    const addRemedy = useStore((state) => state.addRemedy);
+    const updateRemedy = useStore((state) => state.updateRemedy);
     const [newProcess, setNewProcess] = useState({ target: '', ref: '' });
     
     // Fee Enforcer State
@@ -33,10 +19,6 @@ const RemedyTracker: React.FC = () => {
         date: new Date().toISOString().split('T')[0]
     });
     const [generatedInvoice, setGeneratedInvoice] = useState('');
-
-    useEffect(() => {
-        setProcesses(list<RemedyProcess>('remedies'));
-    }, []);
 
     const createProcess = () => {
         if (!newProcess.target) return;
@@ -49,24 +31,19 @@ const RemedyTracker: React.FC = () => {
             dates: {},
             tracking: {}
         };
-        put('remedies', p.id, p);
-        setProcesses(list<RemedyProcess>('remedies'));
+        addRemedy(p);
         setNewProcess({ target: '', ref: '' });
     };
 
-    const updateProcess = (p: RemedyProcess) => {
-        put('remedies', p.id, p);
-        setProcesses(list<RemedyProcess>('remedies'));
-    };
-
     const advanceStep = (p: RemedyProcess) => {
-        if (p.step < 3) {
-            p.step += 1;
-            p.dates[`step${p.step}` as keyof typeof p.dates] = new Date().toISOString();
-            updateProcess(p);
+        const updatedProcess = { ...p };
+        if (updatedProcess.step < 3) {
+            updatedProcess.step += 1;
+            updatedProcess.dates[`step${updatedProcess.step}` as keyof typeof updatedProcess.dates] = new Date().toISOString();
+            updateRemedy(updatedProcess);
         } else {
-            p.status = 'DEFAULT';
-            updateProcess(p);
+            updatedProcess.status = 'DEFAULT';
+            updateRemedy(updatedProcess);
         }
     };
 

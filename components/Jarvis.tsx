@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { jarvisExtract } from '../services/geminiService';
-import { put } from '../lib/store';
+import { useStore } from '../lib/store';
+import { ArchiveEntry } from '../types';
 
 const Jarvis: React.FC = () => {
   const [text, setText] = useState('');
@@ -55,17 +56,28 @@ const Jarvis: React.FC = () => {
     setLoading(false);
   };
 
-  const handleSave = () => {
+  const addToArchive = useStore((state) => state.addToArchive);
+
+  const handleSave = async () => {
+    if (!extraction) return;
+
     const id = crypto.randomUUID();
-    put('instruments', id, { 
-        id, 
-        type: 'Instrument',
-        source: file ? 'File Upload' : 'Text Input',
-        filename: file?.name,
-        contentText: text || '[Binary File Content]', 
-        extracted: extraction, 
-        createdAt: new Date().toISOString() 
-    });
+    const dataToHash = JSON.stringify(extraction);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(dataToHash));
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    const checksum = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+
+    const newEntry: ArchiveEntry = {
+      id,
+      timestamp: Date.now(),
+      type: 'DRAFT', // Or determine type based on extraction
+      title: extraction.instrumentType || 'Instrument Analysis',
+      summary: `Source: ${file ? file.name : 'Text Input'}. Creditor: ${extraction.creditor || 'N/A'}.`,
+      details: JSON.stringify(extraction, null, 2),
+      checksum,
+    };
+
+    addToArchive(newEntry);
     alert('Instrument secured in Vault.');
   };
 

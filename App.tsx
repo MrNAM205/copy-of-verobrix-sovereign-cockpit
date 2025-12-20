@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Outlet } from 'react-router-dom';
 import Sidebar from './components/Sidebar';
 import Dashboard from './components/Dashboard';
@@ -6,6 +6,7 @@ import KnowledgeView from './components/KnowledgeView';
 import CognitionConsole from './components/CognitionConsole';
 import Drafter from './components/Drafter';
 import ScriptViewer from './components/ScriptViewer';
+import ScriptList from './components/ScriptList';
 import Archive from './components/Archive';
 import Jarvis from './components/Jarvis';
 import Dialogos from './components/Dialogos';
@@ -17,15 +18,31 @@ import TrustBuilder from './components/TrustBuilder';
 import TopicExplorer from './components/TopicExplorer';
 import RemedyTracker from './components/RemedyTracker';
 import PlaybookNavigator from './components/PlaybookNavigator';
+import GuidingPrinciplesModal from './components/GuidingPrinciplesModal';
+import FoiaGenerator from './components/FoiaGenerator';
 import { useStore } from './lib/store';
 
 const App: React.FC = () => {
   const sessionId = useMemo(() => `0x${Date.now().toString(16).toUpperCase()}`, []);
   const { archive, addToArchive } = useStore();
+  const [isPrinciplesModalOpen, setPrinciplesModalOpen] = useState(false);
+
+  useEffect(() => {
+    const hasSeenPrinciples = localStorage.getItem('hasSeenGuidingPrinciples');
+    if (!hasSeenPrinciples) {
+      setPrinciplesModalOpen(true);
+    }
+  }, []);
+
+  const handleClosePrinciplesModal = () => {
+    setPrinciplesModalOpen(false);
+    localStorage.setItem('hasSeenGuidingPrinciples', 'true');
+  };
 
   const Layout = () => (
     <div className="flex h-screen bg-slate-950 text-slate-200 font-sans overflow-hidden">
-      <Sidebar />
+      <GuidingPrinciplesModal isOpen={isPrinciplesModalOpen} onClose={handleClosePrinciplesModal} />
+      <Sidebar onOpenPrinciples={() => setPrinciplesModalOpen(true)} />
       <main className="flex-1 relative flex flex-col min-w-0">
         <header className="h-16 border-b border-sovereign-800/30 bg-slate-900 flex items-center justify-between px-8 shadow-sm shrink-0 z-20">
           <div className="flex items-center space-x-2">
@@ -65,8 +82,10 @@ const App: React.FC = () => {
           <Route path="cognition" element={<CognitionConsole onArchive={addToArchive} />} />
           <Route path="drafter" element={<Drafter onArchive={addToArchive} />} />
           <Route path="drafter/:templateId" element={<Drafter onArchive={addToArchive} />} />
+          <Route path="scripts" element={<ScriptList />} />
           <Route path="scripts/:scriptId" element={<ScriptViewer />} />
           <Route path="archive" element={<Archive entries={archive} />} />
+          <Route path="foia" element={<FoiaGenerator />} />
         </Route>
       </Routes>
     </BrowserRouter>
