@@ -20,6 +20,7 @@ import RemedyTracker from './components/RemedyTracker';
 import PlaybookNavigator from './components/PlaybookNavigator';
 import GuidingPrinciplesModal from './components/GuidingPrinciplesModal';
 import FoiaGenerator from './components/FoiaGenerator';
+import BondIntelligence from './components/BondIntelligence';
 import { useStore } from './lib/store';
 
 const App: React.FC = () => {
@@ -86,6 +87,7 @@ const App: React.FC = () => {
           <Route path="scripts/:scriptId" element={<ScriptViewer />} />
           <Route path="archive" element={<Archive entries={archive} />} />
           <Route path="foia" element={<FoiaGenerator />} />
+          <Route path="bond-intelligence" element={<BondIntelligence />} />
         </Route>
       </Routes>
     </BrowserRouter>
