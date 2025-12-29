@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { SCRIPTS } from '../data/scripts';
 import { TEMPLATES } from '../data/templates';
 import { WORKFLOWS } from '../data/workflows';
-import { MOCK_CORPUS } from '../data/corpus';
+import { CORPUS } from '../data/corpus';
 
 const TOPICS = [
     { id: 'identity', label: 'Identity & Status', tags: ['status', 'identity', 'vital-records', 'authentication', 'pro-se', 'sui-juris', 'domicile', 'indigenous', 'undrip'] },
@@ -29,7 +29,7 @@ const TopicExplorer: React.FC = () => {
             workflows: WORKFLOWS.filter(w => w.steps.some(step => step.recommendedScriptId && SCRIPTS.find(s => s.id === step.recommendedScriptId && hasTag(s.tags))) || (w.id.includes(activeTopic.id) || w.title.toLowerCase().includes(activeTopic.tags[0]))), // Loose matching for workflows since they don't have tags property, matching via content logic or ID
             scripts: SCRIPTS.filter(s => hasTag(s.tags)),
             templates: TEMPLATES.filter(t => t.id.includes(activeTopic.tags[0]) || (t.jurisdiction && activeTopic.tags.some(tag => t.jurisdiction.toLowerCase().includes(tag))) || (t.name.toLowerCase().includes(activeTopic.tags[0]))), // Loose matching for templates
-            corpus: MOCK_CORPUS.filter(c => hasTag(c.tags))
+            corpus: CORPUS.filter(c => hasTag(c.tags))
         };
     }, [activeTopic]);
 

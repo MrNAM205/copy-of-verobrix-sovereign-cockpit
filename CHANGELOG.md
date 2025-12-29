@@ -1,5 +1,12 @@
 # Changelog
 
+## [Unreleased] - 2025-12-28
+
+### Fixed
+- **Topic Explorer**: Fixed a runtime error in `TopicExplorer.tsx` caused by an incorrect import. The component was trying to import `MOCK_CORPUS`, but the correct export from `data/corpus.ts` is `CORPUS`. The import and usage have been corrected.
+- **Knowledge View**: Fixed a runtime error in `KnowledgeView.tsx` caused by an incorrect import. The component was trying to import `MOCK_CORPUS`, but the correct export from `data/corpus.ts` is `CORPUS`. The import and all usages have been corrected.
+- **Script Viewer**: Fixed a runtime error in `ScriptViewer.tsx` caused by an incorrect import. The component was trying to import `MOCK_CORPUS`, but the correct export from `data/corpus.ts` is `CORPUS`. The import and usage have been corrected.
+
 ## [Unreleased] - 2025-12-18
 
 ### Security

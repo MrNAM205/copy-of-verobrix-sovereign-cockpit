@@ -395,6 +395,57 @@ __________________________
 [Notary Jurat Placeholder]`
   },
   {
+    id: 'declaration-of-trust',
+    name: 'Declaration of Trust',
+    description: 'A public notice declaring the existence of a private trust and identifying its initial assets.',
+    jurisdiction: 'Public Record',
+    discernment: {
+        lawful: "A declaration of trust is a standard legal instrument used to provide notice of a trust's existence without revealing all of its private terms.",
+        contested: "Recording a declaration for a trust that has no assets or a fraudulent purpose.",
+        utility: "Puts the world on notice that certain assets are held in trust, protecting them from claims against the grantor personally.",
+        outcome: "Creates a clear chain of title for assets held in trust."
+    },
+    instructions: [
+        "This document is intended for public recording.",
+        "Do NOT include the private trust agreement, only this notice.",
+        "List the assets transferred into the trust in the 'Schedule of Assets'.",
+        "Sign before a Notary and record at the County Recorder's office."
+    ],
+    fields: [
+        { key: 'trust_name', label: 'Trust Name', placeholder: 'The Veritas Private Trust', type: 'text'},
+        { key: 'trustees', label: 'Trustee(s)', placeholder: 'John Henry Doe', type: 'text'},
+        { key: 'date', label: 'Date of Execution', placeholder: 'YYYY-MM-DD', type: 'date'},
+        { key: 'asset_schedule', label: 'Schedule of Assets', placeholder: 'Parcel ID: 123-456, 2024 Honda Accord VIN: ...', type: 'textarea'},
+    ],
+    content: `DECLARATION OF TRUST
+
+KNOW ALL MEN BY THESE PRESENTS, that a private, non-statutory trust known as:
+
+{{trust_name}}
+
+...was established on {{date}}.
+
+The initial Trustee(s) of said trust are:
+
+{{trustees}}
+
+The following assets, among others, have been conveyed to and are now held in the corpus of the trust:
+
+SCHEDULE OF ASSETS
+--------------------
+{{asset_schedule}}
+--------------------
+
+This declaration is made to serve as public notice of the existence of the aforementioned trust. The private trust agreement, which contains the full terms and provisions, is not attached hereto and does not form a part of the public record.
+
+IN WITNESS WHEREOF, the Trustee has executed this Declaration on the date first above written.
+
+__________________________
+Trustee
+
+[Notary Jurat Placeholder]`
+  },
+  {
     id: 'affidavit-status-correction',
     name: 'Affidavit of Status Correction',
     description: 'Sworn statement correcting the political status of the individual.',

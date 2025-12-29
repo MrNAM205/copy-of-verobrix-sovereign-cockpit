@@ -1,25 +1,33 @@
 import { Bond } from '../types';
+import { scrapeNewIssues } from './emmaScraper';
 
-// Placeholder for MSRB EMMA API integration
-const MOCK_EMMA_BONDS: Bond[] = [
-    { 
-        cusip: '518066AA3',
-        issuer: 'Lauderdale County & Florence Ala Public Hospital Board', 
-        type: 'Hospital Revenue Bonds', 
-        datedDate: '1987-10-01',
-        state: 'Alabama',
-        details: 'Hospital Revenue Bonds (Coffee Health Group), 1987 - From EMMA'
-    },
+const stateAbbreviations = [
+    'AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'FL', 'GA', 
+    'HI', 'ID', 'IL', 'IN', 'IA', 'KS', 'KY', 'LA', 'ME', 'MD', 
+    'MA', 'MI', 'MN', 'MS', 'MO', 'MT', 'NE', 'NV', 'NH', 'NJ', 
+    'NM', 'NY', 'NC', 'ND', 'OH', 'OK', 'OR', 'PA', 'RI', 'SC', 
+    'SD', 'TN', 'TX', 'UT', 'VT', 'VA', 'WA', 'WV', 'WI', 'WY'
 ];
 
 export const searchEmma = async (query: string): Promise<Bond[]> => {
     console.log(`Searching EMMA for: ${query}`);
-    // In a real implementation, this would make a request to the EMMA API
+    
+    // Extract state from query or default to AL
+    const queryParts = query.toUpperCase().split(' ');
+    const state = queryParts.find(part => stateAbbreviations.includes(part)) || 'AL';
+
+    const bonds = await scrapeNewIssues(state);
+    
+    // If the query is just a state, return all results for that state
+    if (queryParts.length === 1 && stateAbbreviations.includes(queryParts[0])) {
+        return bonds;
+    }
+
+    // Further filter by the original query for more relevance
     const lowerQuery = query.toLowerCase();
-    return MOCK_EMMA_BONDS.filter(bond => 
+    return bonds.filter(bond => 
         bond.issuer.toLowerCase().includes(lowerQuery) ||
         bond.type.toLowerCase().includes(lowerQuery) ||
-        bond.state.toLowerCase().includes(lowerQuery) ||
         bond.datedDate.includes(lowerQuery)
     );
 };

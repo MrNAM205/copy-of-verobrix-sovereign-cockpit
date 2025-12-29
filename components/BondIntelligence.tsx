@@ -24,7 +24,7 @@ const BondIntelligence: React.FC = () => {
         setLoading(true);
         setError(null);
         try {
-            const response = await fetch('http://localhost:3002/api/search', {
+            const response = await fetch('/api/search', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -46,7 +46,7 @@ const BondIntelligence: React.FC = () => {
 
     // Initial search on component mount
     useEffect(() => {
-        handleSearch('Alabama 1987');
+        handleSearch('Alabama');
     }, []);
 
     return (

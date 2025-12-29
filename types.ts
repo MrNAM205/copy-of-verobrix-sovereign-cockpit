@@ -154,3 +154,33 @@ export interface RemedyProcess {
         step2?: string;
     };
 }
+
+// --- Trust & Asset Management ---
+
+export interface RealEstateAsset {
+    type: 'REAL_ESTATE';
+    parcelId: string;
+    legalDescription: string;
+    deedReference: string; // e.g., book/page or document number
+}
+
+export interface VehicleAsset {
+    type: 'VEHICLE';
+    vin: string;
+    make: string;
+    model: string;
+    year: number;
+    mcoReference: string; // Manufacturer's Certificate of Origin
+}
+
+export type Asset = RealEstateAsset | VehicleAsset;
+
+export interface Trust {
+    id: string;
+    name: string; // e.g., "The John Henry Doe Family Trust"
+    trustees: string[]; // For now, just names. Could be Persona IDs later.
+    beneficiaries: string[];
+    createdAt: string;
+    jurisdiction: string; // e.g., "Common Law", "State of Alabama"
+    assets: Asset[];
+}

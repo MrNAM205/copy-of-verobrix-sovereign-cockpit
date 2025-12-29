@@ -1,6 +1,6 @@
 
 import React, { useState, useMemo } from 'react';
-import { MOCK_CORPUS } from '../data/corpus';
+import { CORPUS } from '../data/corpus';
 import { CorpusItem, CorpusType } from '../types';
 
 const KnowledgeView: React.FC = () => {
@@ -19,7 +19,7 @@ const KnowledgeView: React.FC = () => {
   ];
 
   const filteredCorpus = useMemo(() => {
-    return MOCK_CORPUS.filter(item => {
+    return CORPUS.filter(item => {
       const matchesSearch = 
         item.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
         item.citation.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -111,7 +111,7 @@ const KnowledgeView: React.FC = () => {
           )}
         </div>
         <div className="p-2 border-t border-slate-800 text-center text-[10px] text-slate-600 font-mono">
-            Total Records: {MOCK_CORPUS.length}
+            Total Records: {CORPUS.length}
         </div>
       </div>
 

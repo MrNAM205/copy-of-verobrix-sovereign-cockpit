@@ -1,21 +1,117 @@
 
 export interface WorkflowStep {
+
   id: string;
+
   title: string;
+
   description: string;
+
   instructions: string[];
+
   recommendedScriptId?: string;
+
   recommendedTemplateId?: string;
+
+  requiresTrustSelection?: boolean;
+
 }
+
+
 
 export interface Workflow {
+
   id: string;
+
   title: string;
+
   description: string;
+
   steps: WorkflowStep[];
+
 }
 
+
+
 export const WORKFLOWS: Workflow[] = [
+
+  {
+
+    id: 'declaration-of-trust',
+
+    title: 'File a Declaration of Trust',
+
+    description: 'Create a public record of your private trust and its initial assets.',
+
+    steps: [
+
+      {
+
+        id: 'step-1-select-trust',
+
+        title: 'Select Trust to File',
+
+        description: 'Choose the trust you wish to put on the public record.',
+
+        instructions: [
+
+          'Select one of your established trusts from the dropdown menu.',
+
+          'Ensure the trust has assets injected before filing.'
+
+        ],
+
+        requiresTrustSelection: true,
+
+      },
+
+      {
+
+        id: 'step-2-draft-declaration',
+
+        title: 'Draft the Declaration',
+
+        description: 'Generate the formal notice for public recording.',
+
+        instructions: [
+
+          'Click the "Open in Drafter" button.',
+
+          'The drafter will be pre-filled with your selected trust\'s information.',
+
+          'Review the document for accuracy.'
+
+        ],
+
+        recommendedTemplateId: 'declaration-of-trust'
+
+      },
+
+      {
+
+        id: 'step-3-notarize-record',
+
+        title: 'Notarize and Record',
+
+        description: 'Execute the document and file it with the county clerk.',
+
+        instructions: [
+
+          'Print the generated Declaration of Trust.',
+
+          'Sign the document in the presence of a Notary Public.',
+
+          'Take the notarized document to your County Recorder\'s office.',
+
+          'Request to have it recorded and obtain a certified copy for your records.'
+
+        ]
+
+      }
+
+    ]
+
+  },
   {
     id: 'status-correction',
     title: 'Status Correction (State National)',

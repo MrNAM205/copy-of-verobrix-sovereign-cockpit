@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { SCRIPTS } from '../data/scripts';
-import { MOCK_CORPUS } from '../data/corpus';
+import { CORPUS } from '../data/corpus';
 import { Script } from '../types';
 
 const ScriptViewer: React.FC = () => {
@@ -43,7 +43,7 @@ const ScriptViewer: React.FC = () => {
   // Find related corpus items based on tags
   const relatedAuthority = useMemo(() => {
     if (!selectedScript) return [];
-    return MOCK_CORPUS.filter(item => 
+    return CORPUS.filter(item =>
         item.tags.some(tag => selectedScript.tags.includes(tag)) ||
         selectedScript.content.toLowerCase().includes(item.title.toLowerCase())
     ).slice(0, 3);
