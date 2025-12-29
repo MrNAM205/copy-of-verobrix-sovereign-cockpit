@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { generateP256, sha256Bytes, signP256, exportPublicKey } from '../lib/crypto';
 import { useStore } from '../lib/store';
-import { ArchiveEntry } from '../types';
+import { generateSignature } from '../lib/signatures';
 
 const EndorsementStudio: React.FC = () => {
   const [keys, setKeys] = useState<CryptoKeyPair | null>(null);
@@ -13,6 +13,16 @@ const EndorsementStudio: React.FC = () => {
   const [sig, setSig] = useState('');
   const [step, setStep] = useState(1);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const { personas, activePersonaId, capacity, addToArchive } = useStore((state) => ({
+    personas: state.personas,
+    activePersonaId: state.activePersonaId,
+    capacity: state.capacity,
+    addToArchive: state.addToArchive,
+  }));
+
+  const activePersona = personas.find(p => p.id === activePersonaId);
+  const generatedSignature = generateSignature(activePersona || null, capacity.activeSignatureMode);
 
   useEffect(() => {
     (async () => {
@@ -52,22 +62,21 @@ const EndorsementStudio: React.FC = () => {
               content = `NOTICE OF CREDIT CLAIM & TENDER OF SET-OFF\n\n` +
               `NOTICE TO AGENT IS NOTICE TO PRINCIPAL\n` +
               `RE: Account/Instrument No. [INSERT NUMBER]\n\n` +
-              `I, [Your Name], Authorized Representative, hereby present this lawful claim for credit on the public ledger. ` +
+              `I, ${activePersona?.givenName || '[Your Name]'}, Authorized Representative, hereby present this lawful claim for credit on the public ledger. ` +
               `The attached instrument is accepted for value and returned for discharge of the obligation pursuant to public policy ` +
               `and UCC Article 3.\n\n` +
               `You are hereby directed to apply the principal balance to the account and zero out the ledger. ` +
               `Failure to adjust the account within 14 days will constitute acceptance of the discharge by acquiescence.\n\n` +
               `This endorsement serves as the Allonge to the attached instrument.\n\n` +
-              `By: __________________________\n` +
-              `    Authorized Representative\n` +
-              `    Without Prejudice, UCC 1-308`;
+              `By: ${generatedSignature}\n` +
+              `    ${capacity.activeCapacity}`;
               break;
           case 'a4v':
               content = `ACCEPTED FOR VALUE\n` +
               `Exempt from Levy\n` +
               `Return to Drawer for Adjustment and Discharge\n` +
-              `Date: [YYYY-MM-DD]\n` +
-              `By: [Your Name], Authorized Representative`;
+              `Date: ${new Date().toISOString().split('T')[0]}\n` +
+              `By: ${generatedSignature}`;
               break;
           case 'conditional':
               content = `CONDITIONAL ACCEPTANCE\n\n` +
@@ -116,8 +125,6 @@ const EndorsementStudio: React.FC = () => {
     setStep(3);
   };
 
-  const addToArchive = useStore((state) => state.addToArchive);
-
   const handleSave = () => {
     if (!keys || !sig) return;
     
@@ -136,6 +143,12 @@ const EndorsementStudio: React.FC = () => {
         bundleHash: hash,
         signature: sig,
         publicKeyJwk,
+        actingAs: {
+          persona: activePersona?.statutoryPersonaName,
+          capacity: capacity.activeCapacity,
+          signature: generatedSignature,
+          authority: capacity.authoritySource,
+        },
         createdAt: new Date().toISOString()
       }, null, 2),
       checksum: hash, // The SHA-256 hash serves as the checksum
@@ -157,6 +170,23 @@ const EndorsementStudio: React.FC = () => {
             <div>
                 <h2 className="text-2xl font-serif font-bold text-sovereign-200">Endorsement Studio</h2>
                 <p className="text-sm text-slate-400 font-mono">Bundled Signing & Cryptographic Endorsement</p>
+            </div>
+        </div>
+
+        <div className="bg-slate-900 border border-sovereign-800 rounded p-4">
+            <div className="grid grid-cols-3 gap-4 text-xs font-mono">
+                <div>
+                    <div className="text-sovereign-400 uppercase mb-1">Active Persona</div>
+                    <div className="text-slate-200 truncate">{activePersona ? activePersona.statutoryPersonaName : 'N/A'}</div>
+                </div>
+                <div>
+                    <div className="text-sovereign-400 uppercase mb-1">Capacity</div>
+                    <div className="text-slate-200">{capacity.activeCapacity}</div>
+                </div>
+                <div>
+                    <div className="text-sovereign-400 uppercase mb-1">Signature Preview</div>
+                    <div className="text-slate-200 font-semibold">{generatedSignature}</div>
+                </div>
             </div>
         </div>
 

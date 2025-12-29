@@ -4,24 +4,24 @@ type Status = 'pro_se' | 'sui_juris' | 'authorized_rep';
 
 const STATUS_INFO = {
   pro_se: {
-    title: 'Pro Se',
-    subtitle: 'Representing the Legal Fiction',
-    implication: 'You are admitting to being the legal person/defendant and acting as its attorney. This fully consents to the court\'s jurisdiction.',
-    strength: 'Weakest',
+    title: 'Pro Se (Acting as the Persona)',
+    subtitle: 'Assuming the role of the Statutory Persona',
+    implication: 'You are identifying as the statutory persona and representing it yourself. This fully accepts the jurisdiction of the administrative body or court over the persona.',
+    strength: 'Standard',
     color: 'red',
   },
   sui_juris: {
-    title: 'Sui Juris / In Propria Persona',
-    subtitle: 'Appearing as a Man/Woman',
-    implication: 'You are asserting you are a competent, living man or woman, distinct from the legal fiction. This challenges joinder and presumptive consent.',
-    strength: 'Stronger',
+    title: 'In Propria Persona (Individual Capacity)',
+    subtitle: 'Appearing as a private individual',
+    implication: 'You are asserting that you are a private individual, not acting in a representative or official capacity. Courts may still presume you are acting for the statutory persona unless clearly stated otherwise.',
+    strength: 'Situational',
     color: 'amber',
   },
   authorized_rep: {
     title: 'Authorized Representative',
-    subtitle: 'Acting for the Legal Fiction',
-    implication: 'You are the principal/beneficiary of the legal entity, appearing on its behalf to settle the account. This places you in a superior, creditor position.',
-    strength: 'Strongest',
+    subtitle: 'Acting in a Representative Capacity',
+    implication: 'You are the principal acting on behalf of the statutory persona (the agent). This establishes a clear legal distinction, allowing you to manage its affairs without incurring personal liability.',
+    strength: 'Strategic',
     color: 'emerald',
   }
 };
@@ -32,7 +32,7 @@ const StatusSelector: React.FC = () => {
   return (
     <div className="bg-slate-900 border border-slate-800 rounded p-6 shadow-lg">
         <h3 className="text-sm font-bold text-sovereign-400 uppercase tracking-widest mb-4">
-            Select Your Standing
+            Select Your Legal Capacity
         </h3>
         <div className="space-y-3">
             {(Object.keys(STATUS_INFO) as Status[]).map(key => {
@@ -61,7 +61,7 @@ const StatusSelector: React.FC = () => {
             })}
         </div>
         <p className="text-[10px] text-slate-500 mt-4 italic">
-            This selection is for educational purposes to understand your capacity. The strongest standing is "Authorized Representative," which separates the living man from the commercial entity.
+            This selection helps clarify your legal capacity. "Authorized Representative" is often the most strategic standing as it distinguishes the individual from the statutory persona being managed.
         </p>
     </div>
   );

@@ -18,36 +18,36 @@ const GuidingPrinciplesModal: React.FC<GuidingPrinciplesModalProps> = ({ isOpen,
         
         <div className="space-y-6 text-slate-300 text-sm leading-relaxed">
           <p>
-            This platform is dedicated to the principles of lawful self-governance, accountability, and the masterful use of administrative and commercial processes. Our methodology is grounded in black-letter law and historical precedent, not in frivolous arguments or extremist ideologies.
+            This platform is a cockpit for strategic navigation of administrative, financial, and legal systems. Our methodology is grounded in a deep respect for black-letter law and a commitment to using established, enforceable procedures to achieve real-world outcomes.
           </p>
 
           <div className="p-4 bg-slate-950 border border-slate-800 rounded-lg">
-            <h3 className="font-bold text-sovereign-400 mb-2">Our Core Tenets:</h3>
-            <ul className="space-y-2 list-disc list-inside text-xs">
+            <h3 className="font-bold text-sovereign-400 mb-2">Our Strategic Approach:</h3>
+            <ul className="space-y-3 list-disc list-inside text-xs">
               <li>
-                <span className="font-bold">Accountability through Paperwork:</span> We believe that the pen is mightier than the sword. Correctly structured and lawfully sound documents are the primary tools for holding entities accountable.
+                <span className="font-bold">Master the Administrative Process:</span> The most effective remedies are found by mastering the existing rules of procedure. We focus on using an agency's or corporation's own processes (deadlines, forms, and appeals) to ensure compliance and accountability.
               </li>
               <li>
-                <span className="font-bold">Commercial Law as the Basis:</span> We operate on the understanding that modern governance functions primarily through commercial law (e.g., the Uniform Commercial Code - UCC), treating notices and charges as contracts or presentments.
+                <span className="font-bold">Use Real, Enforceable Law:</span> Our playbooks are built on a foundation of powerful consumer protection and administrative laws, including the FDCPA, FCRA, TILA, RESPA, and the Administrative Procedure Act (APA). These are the tools that provide real leverage.
               </li>
               <li>
-                <span className="font-bold">Distinction, Not Separation:</span> We emphasize the critical legal distinction between the "living man/woman" (the principal) and the "legal fiction" or "strawman" (the transmitting utility). This is a principle of control and liability, not an attempt to create a "diplomatic immunity" from all law.
+                <span className="font-bold">Manage Legal Personhood:</span> The legal system uses the concept of "legal persons" (e.g., corporations, trusts) to manage affairs. We use this same architecture to your advantage, helping you act in the proper 'capacity' (e.g., as an individual, a trustee, or a representative for an entity) to manage liability and control legal interactions.
               </li>
-              <li>
-                <span className="font-bold">Honor and Discharge:</span> We advocate for honoring all presentments by "accepting them for value" and discharging them through proper administrative processes, rather than dishonoring them by arguing or ignoring them.
+               <li>
+                <span className="font-bold">Pragmatism Over Theory:</span> We prioritize what is effective over what is theoretical. Our goal is to generate responses, enforce deadlines, and achieve tangible outcomes, not to make philosophical points that are easily dismissed. Success is measured by results.
               </li>
             </ul>
           </div>
 
           <div className="p-4 bg-red-900/10 border border-red-800/50 rounded-lg">
-            <h3 className="font-bold text-red-400 mb-2">What We Unequivocally Reject:</h3>
+            <h3 className="font-bold text-red-400 mb-2">A Rejection of Ineffective Tactics:</h3>
             <p className="text-xs text-red-300/90">
-              This platform and its creators explicitly disavow and condemn any association with so-called "sovereign citizen" groups that advocate for unlawful violence, tax evasion schemes, or frivolous "paper terrorism." Such actions are counterproductive, dishonorable, and have no place in the pursuit of lawful remedy. We are scholars of law and administrative process, not adherents to any ideology that promotes conflict or disrespect for the rule of law. The term "sovereign citizen" is often a pejorative label used to dismiss valid legal arguments; we reclaim the term "sovereign" in its original meaning: to be the final authority in one's own affairs, operating honorably within the bounds of law.
+              This platform is designed for strategic execution, not "paper terrorism" or frivolous arguments. We explicitly reject tactics that have been consistently dismissed by courts and agencies, as they are counterproductive to achieving real remedy. This includes arguments based on pseudo-commercial theories (e.g., "accept for value" without a valid basis), unusual formatting, or attempts to claim immunity from the law. Our focus is on precision, discipline, and the diligent application of established legal and administrative processes.
             </p>
           </div>
 
           <p>
-            By using this tool, you affirm your commitment to proceeding in honor, with clean hands, and with a sincere intent to achieve lawful and peaceful remedy through the administrative process.
+            By using this tool, you affirm your commitment to proceeding with strategic discipline, with a clear-eyed focus on real-world application of the law to achieve your desired outcome.
           </p>
         </div>
 

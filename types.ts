@@ -1,4 +1,3 @@
-
 export enum CorpusType {
   STATUTE = 'STATUTE',
   DICTIONARY = 'DICTIONARY',
@@ -7,6 +6,7 @@ export enum CorpusType {
   CASE_LAW = 'CASE_LAW',
   COMMENTARY = 'COMMENTARY',
   MAXIM = 'MAXIM',
+  DOCTRINE = 'DOCTRINE',
 }
 
 export interface CorpusItem {
@@ -83,77 +83,92 @@ export interface CognitionResult {
   mapLinks?: MapLink[];
 }
 
+// --- PHASE 2: PERSONA & CAPACITY ENGINE ---
+
 export interface Persona {
   id: string;
-  givenName: string;
-  familyName: string;
-  tradeNameAllCaps: string;
-  mailingAddress: string;        // deliverable postal address
-  domicileDeclaration: string;   // sovereign narrative declaration
-  keyPairId: string;             // link to crypto identity
+  givenName: string;            // The Individual's name
+  familyName: string;             // The Individual's family name
+  statutoryPersonaName: string;   // The name of the Legal Personhood Construct (e.g., ALL CAPS)
+  mailingAddress: string;         // Deliverable postal address for the Statutory Persona
+  domicileDeclaration: string;    // Narrative domicile for the Individual
+  keyPairId: string;              // Link to crypto identity
   createdAt: string;
 }
 
-export interface PlaybookStep {
-  id: string;
-  order: number;
-  title: string;
-  action: string;
-  rationale: string;
-  riskLevel: 'Low' | 'Medium' | 'High';
-  source?: string; // Citation or legal basis
-  duration?: string; // e.g. "Immediate" or "30 Days"
-  completed: boolean;
+export enum LegalCapacity {
+  INDIVIDUAL = 'Individual',
+  REPRESENTATIVE = 'Representative',
+  TRUSTEE = 'Trustee',
+  EXECUTOR = 'Executor',
+  AGENT = 'Agent',
+  BENEFICIARY = 'Beneficiary',
+  PRINCIPAL = 'Principal',
 }
 
-export interface Playbook {
-  id: string;
+export enum SignatureMode {
+  INDIVIDUAL = 'Individual', // e.g., John-Henry: Doe
+  REPRESENTATIVE = 'Representative', // e.g., John Henry Doe, Authorized Representative
+  TRUSTEE = 'Trustee', // e.g., John Henry Doe, Trustee
+  EXECUTOR = 'Executor', // e.g., John Henry Doe, Executor
+  UCC_RESERVATION = 'UCC Reservation', // e.g., John Henry Doe, without prejudice
+}
+
+export enum JurisdictionalContext {
+  ADMINISTRATIVE = 'Administrative',
+  CIVIL = 'Civil',
+  COMMERCIAL = 'Commercial',
+  REGULATORY = 'Regulatory',
+  CONSTITUTIONAL = 'Constitutional',
+}
+
+export interface CapacityState {
+  activeCapacity: LegalCapacity;
+  activeSignatureMode: SignatureMode;
+  activeJurisdiction: JurisdictionalContext;
+  authoritySource: string; // e.g., "Agency Law", "Trust Instrument", "UCC § 1-308"
+}
+
+// --- END PHASE 2 ---
+
+
+// --- END PHASE 4 ---
+
+
+// --- PHASE 5: MISSION ORCHESTRATION ---
+
+export interface MissionStep {
+  order: number;
   title: string;
-  description: string;
-  category: 'TRAFFIC' | 'COMMERCIAL' | 'TRUST' | 'TREATY' | 'INDIGENOUS';
-  steps: PlaybookStep[];
+  remedyDefinitionId: string; // Links to a remedy in `data/remedies.ts`
+  // Defines how to move to the next step based on the outcome of the remedy
+  transitions: {
+    onSuccess: number | 'COMPLETE'; // Go to this order number on success
+    onFailure: number | 'FAIL';     // Go to this order number on failure
+  };
+}
+
+export interface MissionPlaybook {
+  id: string; // e.g., 'MISSION-FDCPA-01'
+  missionName: string; // e.g., "Neutralize a Collection Attempt"
+  objective: string;
+  requiredPersona: LegalCapacity[];
+  steps: MissionStep[];
   tags: string[];
 }
 
-export interface UccSection {
-  id: string;
-  title: string;
-  text: string;
+export interface ActiveMission {
+  instanceId: string; // A unique ID for this specific mission
+  playbookId: string; // Links back to the playbook
+  status: 'IN_PROGRESS' | 'COMPLETED' | 'FAILED';
+  currentStepOrder: number;
+  activeRemedyInstanceId: string | null; // The instanceId of the currently running ActiveRemedy
+  startedAt: string;
+  variables: Record<string, any>; // To store user input for the whole mission
 }
 
-export interface UccPart {
-  title: string;
-  sections: UccSection[];
-}
+// --- END PHASE 5 ---
 
-export interface UccArticle {
-  title: string;
-  parts: UccPart[];
-}
-
-export interface Maxim {
-  id: string;
-  latin: string;
-  english: string;
-  explanation: string;
-}
-
-export interface RemedyProcess {
-    id: string;
-    targetName: string;
-    referenceNo: string;
-    status: 'ACTIVE' | 'DEFAULT' | 'CLOSED';
-    step: 1 | 2 | 3;
-    dates: {
-        step1?: string;
-        step2?: string;
-        step3?: string;
-    };
-    tracking: {
-        step1?: string;
-        step2?: string;
-    };
-}
 
 // --- Trust & Asset Management ---
 

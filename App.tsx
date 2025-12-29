@@ -22,11 +22,17 @@ import GuidingPrinciplesModal from './components/GuidingPrinciplesModal';
 import FoiaGenerator from './components/FoiaGenerator';
 import BondIntelligence from './components/BondIntelligence';
 import { useStore } from './lib/store';
+import { useTimelineEngine } from './hooks/useTimelineEngine';
+import { useMissionOrchestrator } from './hooks/useMissionOrchestrator';
 
 const App: React.FC = () => {
   const sessionId = useMemo(() => `0x${Date.now().toString(16).toUpperCase()}`, []);
   const { archive, addToArchive } = useStore();
   const [isPrinciplesModalOpen, setPrinciplesModalOpen] = useState(false);
+
+  // Initialize the core background engines
+  useTimelineEngine();
+  useMissionOrchestrator();
 
   useEffect(() => {
     const hasSeenPrinciples = localStorage.getItem('hasSeenGuidingPrinciples');
@@ -40,29 +46,51 @@ const App: React.FC = () => {
     localStorage.setItem('hasSeenGuidingPrinciples', 'true');
   };
 
-  const Layout = () => (
-    <div className="flex h-screen bg-slate-950 text-slate-200 font-sans overflow-hidden">
-      <GuidingPrinciplesModal isOpen={isPrinciplesModalOpen} onClose={handleClosePrinciplesModal} />
-      <Sidebar onOpenPrinciples={() => setPrinciplesModalOpen(true)} />
-      <main className="flex-1 relative flex flex-col min-w-0">
-        <header className="h-16 border-b border-sovereign-800/30 bg-slate-900 flex items-center justify-between px-8 shadow-sm shrink-0 z-20">
-          <div className="flex items-center space-x-2">
-            <span className="font-mono text-xs text-sovereign-600 tracking-widest">SESSION ID:</span>
-            <span className="font-mono text-xs text-slate-400">{sessionId}</span>
-          </div>
-          <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-2 px-3 py-1 bg-sovereign-900/20 rounded border border-sovereign-800/50">
-              <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
-              <span className="text-xs font-bold text-sovereign-300 tracking-wide uppercase">Lawful Mode</span>
+  const Layout = () => {
+    const { personas, activePersonaId, capacity } = useStore();
+    const activePersona = useMemo(() => personas.find(p => p.id === activePersonaId), [personas, activePersonaId]);
+
+    return (
+      <div className="flex h-screen bg-slate-950 text-slate-200 font-sans overflow-hidden">
+        <GuidingPrinciplesModal isOpen={isPrinciplesModalOpen} onClose={handleClosePrinciplesModal} />
+        <Sidebar onOpenPrinciples={() => setPrinciplesModalOpen(true)} />
+        <main className="flex-1 relative flex flex-col min-w-0">
+          <header className="h-16 border-b border-sovereign-800/30 bg-slate-900 flex items-center justify-between px-8 shadow-sm shrink-0 z-20">
+            <div className="flex items-center space-x-2">
+              <span className="font-mono text-xs text-sovereign-600 tracking-widest">SESSION ID:</span>
+              <span className="font-mono text-xs text-slate-400">{sessionId}</span>
             </div>
+            
+            {/* Persona and Capacity Status Display */}
+            <div className="flex items-center space-x-4">
+                {activePersona ? (
+                    <div className="flex items-center space-x-2 text-xs text-center">
+                        <span className="text-slate-500 font-mono">OPERATING AS:</span>
+                        <span className="font-bold text-sovereign-300 font-mono">{activePersona.statutoryPersonaName}</span>
+                        <span className="text-slate-500">/</span>
+                        <span className="font-bold text-sovereign-400 font-mono uppercase">{capacity.activeCapacity}</span>
+                    </div>
+                ) : (
+                     <div className="flex items-center space-x-2 text-xs text-center">
+                        <span className="text-amber-500 font-mono">WARNING: NO ACTIVE PERSONA</span>
+                    </div>
+                )}
+            </div>
+
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-2 px-3 py-1 bg-sovereign-900/20 rounded border border-sovereign-800/50">
+                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
+                <span className="text-xs font-bold text-sovereign-300 tracking-wide uppercase">Lawful Mode</span>
+              </div>
+            </div>
+          </header>
+          <div className="flex-1 overflow-hidden relative">
+            <Outlet />
           </div>
-        </header>
-        <div className="flex-1 overflow-hidden relative">
-          <Outlet />
-        </div>
-      </main>
-    </div>
-  );
+        </main>
+      </div>
+    );
+  }
 
   return (
     <BrowserRouter>
@@ -72,6 +100,7 @@ const App: React.FC = () => {
           <Route path="topics" element={<TopicExplorer />} />
           <Route path="filing" element={<FilingNavigator />} />
           <Route path="remedy" element={<RemedyTracker />} />
+          <Route path="remedy/:instanceId" element={<RemedyManager />} />
           <Route path="playbooks" element={<PlaybookNavigator />} />
           <Route path="identity" element={<PersonaManager />} />
           <Route path="trust" element={<TrustBuilder />} />

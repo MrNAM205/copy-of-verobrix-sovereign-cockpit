@@ -6,38 +6,41 @@ import StatusSelector from './StatusSelector';
 const PersonaManager: React.FC = () => {
   const [givenName, setGivenName] = useState('');
   const [familyName, setFamilyName] = useState('');
-  const [tradeNameAllCaps, setTradeNameAllCaps] = useState('');
+  const [statutoryPersonaName, setStatutoryPersonaName] = useState('');
   const [mailingAddress, setMailingAddress] = useState('');
   const [domicileDeclaration, setDomicileDeclaration] = useState('Domiciled on the land and soil of [State], a constituent republic of the Union, without the United States.');
 
-  const addPersona = useStore((state) => state.addPersona);
+  const { personas, activePersonaId, addPersona, setActivePersona } = useStore((state) => ({
+    personas: state.personas,
+    activePersonaId: state.activePersonaId,
+    addPersona: state.addPersona,
+    setActivePersona: state.setActivePersona,
+  }));
 
-  const handleSave = () => {
-    if (!givenName || !familyName || !tradeNameAllCaps) {
-        alert("Please complete the core identity fields.");
-        return;
-    }
-
-    const persona: Persona = {
-      id: crypto.randomUUID(),
-      givenName,
-      familyName,
-      tradeNameAllCaps,
-      mailingAddress,
-      domicileDeclaration,
-      keyPairId: 'default', // Placeholder for future crypto integration
-      createdAt: new Date().toISOString()
+    const handleSave = () => {
+      if (!givenName || !familyName || !statutoryPersonaName) {
+          alert("Please complete the core identity fields.");
+          return;
+      }
+  
+          const persona: Persona = {
+            id: crypto.randomUUID(),
+            givenName,
+            familyName,
+            statutoryPersonaName: statutoryPersonaName,
+            mailingAddress,
+            domicileDeclaration,
+            keyPairId: 'default', // Placeholder for future crypto integration
+            createdAt: new Date().toISOString()
+          };      addPersona(persona);
+      
+      // Reset form
+      setGivenName('');
+      setFamilyName('');
+      setStatutoryPersonaName('');
+      setMailingAddress('');
+      alert('Persona identity secured in Vault.');
     };
-    addPersona(persona);
-    
-    // Reset form
-    setGivenName('');
-    setFamilyName('');
-    setTradeNameAllCaps('');
-    setMailingAddress('');
-    alert('Persona identity secured in Vault.');
-  };
-
   return (
     <div className="h-full bg-slate-950 p-8 overflow-y-auto">
       <div className="max-w-4xl mx-auto space-y-8">
@@ -49,16 +52,52 @@ const PersonaManager: React.FC = () => {
             </div>
             <div>
                 <h2 className="text-2xl font-serif font-bold text-sovereign-200">Identity Manager</h2>
-                <p className="text-sm text-slate-400 font-mono">Distinguish Between Natural Person and Legal Entity</p>
+                <p className="text-sm text-slate-400 font-mono">Define Personas for Individual and Representative Capacities</p>
             </div>
         </div>
+
+        {/* Personas List */}
+        <div className="bg-slate-900 border border-slate-800 rounded p-6 shadow-lg">
+            <h3 className="text-sm font-bold text-cyan-500 uppercase tracking-widest mb-4">Active Personas</h3>
+            <div className="space-y-2">
+                {personas.length === 0 && (
+                    <p className="text-xs text-slate-500 italic">No persona profiles created. Define one below to begin.</p>
+                )}
+                {personas.map((p) => (
+                    <div
+                        key={p.id}
+                        className={`flex items-center justify-between p-3 rounded border ${
+                            activePersonaId === p.id
+                                ? 'bg-sovereign-800/50 border-sovereign-700'
+                                : 'bg-slate-800/30 border-slate-700/50 hover:bg-slate-800/50'
+                        }`}
+                    >
+                        <div className="flex items-center">
+                            <span className={`w-2 h-2 rounded-full mr-3 ${activePersonaId === p.id ? 'bg-cyan-400' : 'bg-slate-600'}`}></span>
+                            <div>
+                                <p className="font-mono text-slate-200 text-sm">{p.statutoryPersonaName}</p>
+                                <p className="text-xs text-slate-400 font-mono">{p.givenName} {p.familyName}</p>
+                            </div>
+                        </div>
+                        <button
+                            onClick={() => setActivePersona(p.id)}
+                            disabled={activePersonaId === p.id}
+                            className="text-xs font-mono py-1 px-3 rounded border border-slate-600 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-cyan-600 hover:border-cyan-500 transition-colors"
+                        >
+                            {activePersonaId === p.id ? 'ACTIVE' : 'SELECT'}
+                        </button>
+                    </div>
+                ))}
+            </div>
+        </div>
+
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div className="space-y-6">
                 <div className="bg-slate-900 border border-slate-800 rounded p-6 shadow-lg">
                     <h3 className="text-sm font-bold text-emerald-500 uppercase tracking-widest mb-4 flex items-center">
                         <span className="w-2 h-2 bg-emerald-500 rounded-full mr-2"></span>
-                        Natural Person (Principal)
+                        Individual Capacity (Principal)
                     </h3>
                     <div className="space-y-4">
                         <div>
@@ -98,16 +137,16 @@ const PersonaManager: React.FC = () => {
                  <div className="bg-slate-900 border border-slate-800 rounded p-6 shadow-lg">
                     <h3 className="text-sm font-bold text-red-500 uppercase tracking-widest mb-4 flex items-center">
                         <span className="w-2 h-2 bg-red-500 rounded-full mr-2"></span>
-                        Legal Entity (Agent/Trust)
+                        Statutory Persona (Agent)
                     </h3>
                     <div className="space-y-4">
                         <div>
-                            <label className="block text-xs text-slate-400 mb-1 font-mono">Entity Name (as on documents)</label>
+                            <label className="block text-xs text-slate-400 mb-1 font-mono">Statutory Persona Name (e.g., ALL CAPS)</label>
                             <input
                                 className="w-full bg-slate-950 border border-slate-700 text-slate-200 rounded p-2 text-sm focus:border-red-500 focus:outline-none uppercase"
                                 placeholder="JOHN HENRY DOE"
-                                value={tradeNameAllCaps}
-                                onChange={e => setTradeNameAllCaps(e.target.value.toUpperCase())}
+                                value={statutoryPersonaName}
+                                onChange={e => setStatutoryPersonaName(e.target.value.toUpperCase())}
                             />
                         </div>
                          <div>
@@ -128,7 +167,7 @@ const PersonaManager: React.FC = () => {
                 <div className="bg-sovereign-900/10 border border-sovereign-800/30 rounded p-4">
                     <h4 className="text-xs font-bold text-sovereign-400 uppercase mb-2">Operational Note</h4>
                     <p className="text-xs text-slate-400 leading-relaxed">
-                        This distinction establishes a "firewall" between the natural person (the principal) and the commercial liability of the legal entity (the agent). The Mailing Address is for the entity; the Domicile is for the principal.
+                        This distinction allows the Individual (principal) to act in a Representative Capacity for the Statutory Persona (agent), managing administrative tasks without co-mingling personal and commercial liabilities.
                     </p>
                 </div>
 
@@ -136,7 +175,7 @@ const PersonaManager: React.FC = () => {
                     onClick={handleSave}
                     className="w-full py-3 bg-sovereign-700 hover:bg-sovereign-600 text-white font-bold font-serif rounded shadow-lg transition-all"
                 >
-                    CREATE SECURED PERSONA
+                    SAVE PERSONA PROFILE
                 </button>
             </div>
         </div>

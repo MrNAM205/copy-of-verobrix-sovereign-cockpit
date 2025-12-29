@@ -1,210 +1,166 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useStore } from '../lib/store';
-import { RemedyProcess } from '../types';
+import { REMEDY_DEFINITIONS } from '../data/remedies';
+import { ActiveRemedy, RemedyDefinition } from '../types';
 
 const RemedyTracker: React.FC = () => {
     const navigate = useNavigate();
-    const [activeTab, setActiveTab] = useState<'admin' | 'fees'>('admin');
-    const processes = useStore((state) => state.remedies);
-    const addRemedy = useStore((state) => state.addRemedy);
-    const updateRemedy = useStore((state) => state.updateRemedy);
-    const [newProcess, setNewProcess] = useState({ target: '', ref: '' });
-    
-    // Fee Enforcer State
-    const [invoice, setInvoice] = useState({
-        to: '',
-        violation: 'Rights Violation',
-        amount: '10000',
-        date: new Date().toISOString().split('T')[0]
-    });
-    const [generatedInvoice, setGeneratedInvoice] = useState('');
+    const [searchParams, setSearchParams] = useSearchParams();
+    const { activeRemedies, addRemedy } = useStore((state) => ({
+      activeRemedies: state.remedies,
+      addRemedy: state.addRemedy,
+    }));
 
-    const createProcess = () => {
-        if (!newProcess.target) return;
-        const p: RemedyProcess = {
-            id: crypto.randomUUID(),
-            targetName: newProcess.target,
-            referenceNo: newProcess.ref,
-            status: 'ACTIVE',
-            step: 1,
-            dates: {},
-            tracking: {}
-        };
-        addRemedy(p);
-        setNewProcess({ target: '', ref: '' });
-    };
-
-    const advanceStep = (p: RemedyProcess) => {
-        const updatedProcess = { ...p };
-        if (updatedProcess.step < 3) {
-            updatedProcess.step += 1;
-            updatedProcess.dates[`step${updatedProcess.step}` as keyof typeof updatedProcess.dates] = new Date().toISOString();
-            updateRemedy(updatedProcess);
-        } else {
-            updatedProcess.status = 'DEFAULT';
-            updateRemedy(updatedProcess);
+    useEffect(() => {
+        const remedyToInitiate = searchParams.get('initiate');
+        if (remedyToInitiate) {
+            const remedyDef = REMEDY_DEFINITIONS.find(r => r.id === remedyToInitiate);
+            if (remedyDef) {
+                handleInitiateRemedy(remedyDef);
+            }
+            // Clear the query param after attempting to initiate
+            setSearchParams({}, { replace: true });
         }
+    }, [searchParams, setSearchParams]);
+
+    // Helper function to add business days
+    const addBusinessDays = (date: Date, days: number): Date => {
+      const result = new Date(date);
+      let addedDays = 0;
+      while (addedDays < days) {
+        result.setDate(result.getDate() + 1);
+        const dayOfWeek = result.getDay();
+        if (dayOfWeek !== 0 && dayOfWeek !== 6) { // 0 = Sunday, 6 = Saturday
+          addedDays++;
+        }
+      }
+      return result;
     };
 
-    const generateInvoiceText = () => {
-        const txt = `COMMERCIAL INVOICE & DEMAND FOR PAYMENT
+    const handleInitiateRemedy = (remedyDef: RemedyDefinition) => {
+      // Check if a remedy of this type for the same reference is already active
+      const referenceNo = prompt(`Please enter the reference number (e.g., account #, case #) for this remedy:`);
+      if (!referenceNo) {
+        alert("A reference number is required to initiate a remedy.");
+        return;
+      }
+
+      const isAlreadyActive = activeRemedies.some(ar => ar.remedyDefinitionId === remedyDef.id && ar.variables.referenceNo === referenceNo);
+      if (isAlreadyActive) {
+          alert(`A remedy for "${remedyDef.remedyName}" with reference "${referenceNo}" is already active.`);
+          return;
+      }
+
+      const firstStep = remedyDef.steps[0];
+      const newActiveRemedy: ActiveRemedy = {
+        instanceId: crypto.randomUUID(),
+        remedyDefinitionId: remedyDef.id,
+        status: 'IN_PROGRESS', // Default status
+        currentStepId: firstStep.id,
+        startedAt: new Date().toISOString(),
+        history: [],
+        variables: {
+          referenceNo: referenceNo,
+        },
+      };
+
+      // If the first step is to wait for a response, set the deadline now.
+      if (firstStep.action.type === 'AWAIT_RESPONSE') {
+        const { days, unit } = firstStep.action.deadline;
+        const deadlineDate = unit === 'business'
+          ? addBusinessDays(new Date(), days)
+          : new Date(new Date().setDate(new Date().getDate() + days));
         
-DATE: ${invoice.date}
-TO: ${invoice.to.toUpperCase()}
-FROM: Secured Party Creditor
+        newActiveRemedy.deadline = deadlineDate.toISOString();
+        newActiveRemedy.status = 'AWAITING_RESPONSE';
+      }
 
-RE: VIOLATION OF RIGHTS / TRESPASS
-
-DESCRIPTION OF SERVICE / VIOLATION:
-${invoice.violation}
-
-AMOUNT DUE: $${Number(invoice.amount).toLocaleString()}.00 USD
-
-TERMS:
-Payment is due immediately upon receipt. This is a liquidated debt obligation arising from the consensual contract established via your actions after Notice of Fee Schedule was provided.
-
-Failure to pay within 30 days will result in a Notice of Default and Commercial Lien.
-
-REMIT TO:
-[Trust Name / Mailing Location]`;
-        setGeneratedInvoice(txt);
+      addRemedy(newActiveRemedy);
+      alert(`Remedy "${remedyDef.remedyName}" has been initiated.`);
     };
+
+    const getRemedyDefinition = (definitionId: string) => {
+      return REMEDY_DEFINITIONS.find(def => def.id === definitionId);
+    }
 
     return (
         <div className="h-full bg-slate-950 p-8 overflow-y-auto">
-            <div className="max-w-5xl mx-auto space-y-6">
-                <header className="border-b border-slate-800 pb-6 flex justify-between items-center">
-                    <div>
-                        <h1 className="text-3xl font-serif font-bold text-sovereign-200">Remedy Tracker</h1>
-                        <p className="text-slate-400 font-mono text-sm">Administrative Procedure & Fee Enforcement</p>
-                    </div>
-                    <div className="flex space-x-2 bg-slate-900 p-1 rounded-lg border border-slate-800">
-                        <button onClick={() => setActiveTab('admin')} className={`px-4 py-2 rounded text-xs font-mono uppercase ${activeTab === 'admin' ? 'bg-sovereign-700 text-white' : 'text-slate-400 hover:text-white'}`}>Admin Procedure</button>
-                        <button onClick={() => setActiveTab('fees')} className={`px-4 py-2 rounded text-xs font-mono uppercase ${activeTab === 'fees' ? 'bg-emerald-800 text-white' : 'text-slate-400 hover:text-white'}`}>Fee Enforcer</button>
-                    </div>
+            <div className="max-w-7xl mx-auto space-y-8">
+                <header className="border-b border-slate-800 pb-6">
+                    <h1 className="text-3xl font-serif font-bold text-sovereign-200">Remedy Navigator</h1>
+                    <p className="text-slate-400 font-mono text-sm">Initiate and track real-world administrative remedies.</p>
                 </header>
 
-                {activeTab === 'admin' ? (
-                    <div className="space-y-8">
-                        {/* New Process Creator */}
-                        <div className="bg-slate-900 p-4 rounded border border-slate-800 flex items-end gap-4">
-                            <div className="flex-1">
-                                <label className="text-xs text-slate-500 uppercase font-mono block mb-1">Target / Agency</label>
-                                <input value={newProcess.target} onChange={e => setNewProcess({...newProcess, target: e.target.value})} className="w-full bg-slate-950 border border-slate-700 rounded p-2 text-sm text-white" placeholder="e.g. IRS / Bank of America" />
-                            </div>
-                            <div className="flex-1">
-                                <label className="text-xs text-slate-500 uppercase font-mono block mb-1">Reference No.</label>
-                                <input value={newProcess.ref} onChange={e => setNewProcess({...newProcess, ref: e.target.value})} className="w-full bg-slate-950 border border-slate-700 rounded p-2 text-sm text-white" placeholder="Account # or Case #" />
-                            </div>
-                            <button onClick={createProcess} className="bg-sovereign-700 hover:bg-sovereign-600 text-white px-4 py-2 rounded text-sm font-bold font-serif h-[38px]">INITIATE REMEDY</button>
-                        </div>
-
-                        {/* Active Processes */}
-                        <div className="grid gap-4">
-                            {processes.map(p => (
-                                <div key={p.id} className="bg-slate-900/50 border border-slate-800 rounded-lg p-6 relative overflow-hidden">
-                                    <div className="absolute top-0 left-0 w-1 h-full bg-sovereign-500"></div>
-                                    <div className="flex justify-between items-start mb-4">
-                                        <div>
-                                            <h3 className="text-lg font-bold text-white">{p.targetName}</h3>
-                                            <p className="text-xs text-slate-400 font-mono">REF: {p.referenceNo}</p>
+                {/* Active Remedies Section */}
+                <div className="bg-slate-900/50 border border-slate-800 rounded-lg p-6">
+                    <h2 className="text-lg font-bold text-cyan-400 mb-4 font-serif">Active Processes</h2>
+                    <div className="space-y-4">
+                        {activeRemedies.length > 0 ? activeRemedies.map(ar => {
+                            const def = getRemedyDefinition(ar.remedyDefinitionId);
+                            const currentStep = def?.steps.find(s => s.id === ar.currentStepId);
+                            return (
+                                <div key={ar.instanceId} className="bg-slate-900 border border-slate-700/50 p-4 rounded-md flex justify-between items-center">
+                                    <div>
+                                        <h3 className="font-bold text-white">{def?.remedyName}</h3>
+                                        <p className="text-xs text-slate-400 font-mono">REF: {ar.variables.referenceNo}</p>
+                                        <div className="mt-2 text-xs font-mono">
+                                            <span className="text-slate-500">Current Step: </span>
+                                            <span className="font-semibold text-sovereign-300">{currentStep?.title}</span>
                                         </div>
-                                        <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider border ${p.status === 'DEFAULT' ? 'bg-emerald-900/30 text-emerald-400 border-emerald-800' : 'bg-blue-900/30 text-blue-400 border-blue-800'}`}>
-                                            {p.status}
-                                        </span>
                                     </div>
+                                    <div className="text-right">
+                                        <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider border ${
+                                            ar.status === 'IN_PROGRESS' ? 'bg-blue-900/30 text-blue-400 border-blue-800' :
+                                            ar.status === 'AWAITING_RESPONSE' ? 'bg-yellow-900/30 text-yellow-400 border-yellow-800' :
+                                            'bg-gray-900/30 text-gray-400 border-gray-800'
+                                        }`}>
+                                            {ar.status}
+                                        </span>
+                                        <button 
+                                          onClick={() => navigate(`/remedy/${ar.instanceId}`)}
+                                          className="mt-2 text-xs font-mono py-1 px-3 rounded border border-slate-600 hover:bg-cyan-600 hover:border-cyan-500 transition-colors">
+                                            MANAGE
+                                        </button>
+                                    </div>
+                                </div>
+                            );
+                        }) : (
+                            <p className="text-center text-slate-600 font-mono text-xs py-8">No active remedies. Select one from the library below to begin.</p>
+                        )}
+                    </div>
+                </div>
 
-                                    {/* Progress Stepper */}
-                                    <div className="flex items-center justify-between mb-6 relative">
-                                        <div className="absolute top-1/2 left-0 w-full h-0.5 bg-slate-800 -z-10"></div>
-                                        {[1, 2, 3].map(step => (
-                                            <div key={step} className={`flex flex-col items-center gap-2 bg-slate-900 px-2 ${step > p.step ? 'opacity-50' : ''}`}>
-                                                <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs border-2 ${step <= p.step ? 'bg-sovereign-600 border-sovereign-600 text-white' : 'bg-slate-950 border-slate-700 text-slate-600'}`}>
-                                                    {step}
-                                                </div>
-                                                <span className="text-[10px] font-mono text-slate-400">
-                                                    {step === 1 ? 'CONDITIONAL ACCEPTANCE' : step === 2 ? 'NOTICE OF FAULT' : 'DEFAULT JUDGMENT'}
-                                                </span>
-                                            </div>
+                {/* Available Remedies (Remedy Library) */}
+                <div className="bg-slate-900/50 border border-slate-800 rounded-lg p-6">
+                    <h2 className="text-lg font-bold text-emerald-400 mb-4 font-serif">Remedy Library</h2>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {REMEDY_DEFINITIONS.map(remedy => (
+                            <div key={remedy.id} className="bg-slate-900 border border-slate-700/50 rounded-lg p-4 flex flex-col justify-between">
+                                <div>
+                                    <h3 className="font-bold text-white mb-1">{remedy.remedyName}</h3>
+                                    <p className="text-xs text-slate-400 font-mono mb-2">Authority: {remedy.statutoryAuthority}</p>
+                                    <p className="text-xs text-slate-500 leading-relaxed">
+                                        Triggered by: {remedy.triggerEvent}
+                                    </p>
+                                    <div className="mt-3 flex flex-wrap gap-1">
+                                        {remedy.tags.map(tag => (
+                                            <span key={tag} className="px-1.5 py-0.5 rounded text-[9px] font-mono bg-sovereign-800/50 text-sovereign-300">
+                                                {tag}
+                                            </span>
                                         ))}
                                     </div>
-
-                                    <div className="flex gap-4 border-t border-slate-800 pt-4">
-                                        {p.step === 1 && (
-                                            <button 
-                                                onClick={() => navigate('/drafter/conditional-acceptance-offer')}
-                                                className="flex-1 bg-slate-800 hover:bg-slate-700 text-white py-2 rounded text-xs font-mono border border-slate-700"
-                                            >
-                                                DRAFT NOTICE #1
-                                            </button>
-                                        )}
-                                        {p.step === 2 && (
-                                            <button 
-                                                onClick={() => navigate('/drafter/notice-fault-cure')}
-                                                className="flex-1 bg-slate-800 hover:bg-slate-700 text-white py-2 rounded text-xs font-mono border border-slate-700"
-                                            >
-                                                DRAFT NOTICE #2
-                                            </button>
-                                        )}
-                                        {p.step === 3 && p.status !== 'DEFAULT' && (
-                                            <button 
-                                                onClick={() => navigate('/drafter/certificate-non-response')}
-                                                className="flex-1 bg-slate-800 hover:bg-slate-700 text-white py-2 rounded text-xs font-mono border border-slate-700"
-                                            >
-                                                DRAFT DEFAULT CERT
-                                            </button>
-                                        )}
-                                        
-                                        {p.status !== 'DEFAULT' && (
-                                            <button 
-                                                onClick={() => advanceStep(p)}
-                                                className="px-4 py-2 bg-emerald-900/30 text-emerald-400 border border-emerald-800 hover:bg-emerald-900/50 rounded text-xs font-bold"
-                                            >
-                                                {p.step === 3 ? 'FINALIZE DEFAULT' : 'ADVANCE STEP ->'}
-                                            </button>
-                                        )}
-                                    </div>
                                 </div>
-                            ))}
-                            {processes.length === 0 && <div className="text-center text-slate-600 font-mono text-xs py-10">No active administrative remedies. Initiate one above.</div>}
-                        </div>
-                    </div>
-                ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <div className="space-y-4">
-                            <div className="bg-slate-900 p-6 rounded border border-slate-800">
-                                <h3 className="text-sm font-bold text-emerald-500 uppercase mb-4">Invoice Generator</h3>
-                                <div className="space-y-3">
-                                    <div>
-                                        <label className="text-xs text-slate-500 block mb-1">Bill To (Agent/Agency)</label>
-                                        <input value={invoice.to} onChange={e => setInvoice({...invoice, to: e.target.value})} className="w-full bg-slate-950 border border-slate-700 rounded p-2 text-sm text-white" />
-                                    </div>
-                                    <div>
-                                        <label className="text-xs text-slate-500 block mb-1">Violation Description</label>
-                                        <input value={invoice.violation} onChange={e => setInvoice({...invoice, violation: e.target.value})} className="w-full bg-slate-950 border border-slate-700 rounded p-2 text-sm text-white" />
-                                    </div>
-                                    <div className="flex gap-4">
-                                        <div className="flex-1">
-                                            <label className="text-xs text-slate-500 block mb-1">Amount ($)</label>
-                                            <input value={invoice.amount} onChange={e => setInvoice({...invoice, amount: e.target.value})} className="w-full bg-slate-950 border border-slate-700 rounded p-2 text-sm text-white" type="number" />
-                                        </div>
-                                        <div className="flex-1">
-                                            <label className="text-xs text-slate-500 block mb-1">Date</label>
-                                            <input value={invoice.date} onChange={e => setInvoice({...invoice, date: e.target.value})} className="w-full bg-slate-950 border border-slate-700 rounded p-2 text-sm text-white" type="date" />
-                                        </div>
-                                    </div>
-                                    <button onClick={generateInvoiceText} className="w-full mt-2 bg-emerald-800 hover:bg-emerald-700 text-white font-bold py-2 rounded shadow text-xs tracking-wider">
-                                        GENERATE COMMERCIAL INVOICE
-                                    </button>
-                                </div>
+                                <button
+                                    onClick={() => handleInitiateRemedy(remedy)}
+                                    className="w-full mt-4 bg-emerald-800 hover:bg-emerald-700 text-white font-bold py-2 rounded shadow text-xs tracking-wider transition-colors"
+                                >
+                                    INITIATE
+                                </button>
                             </div>
-                        </div>
-                        <div className="bg-white text-slate-900 p-8 font-mono text-xs whitespace-pre-wrap shadow-2xl rounded relative">
-                            {generatedInvoice || <div className="absolute inset-0 flex items-center justify-center text-slate-400">Preview Invoice Here</div>}
-                        </div>
+                        ))}
                     </div>
-                )}
+                </div>
             </div>
         </div>
     );

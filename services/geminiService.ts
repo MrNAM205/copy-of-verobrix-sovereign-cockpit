@@ -64,63 +64,47 @@ export const getCognitionResponse = async (
   }
 };
 
-export const jarvisExtract = async (input: string | { mimeType: string; data: string }) => {
+export const jarvisExtract = async (prompt: string, document: string | { mimeType: string; data: string }) => {
     try {
         let contents;
-        const prompt = `Analyze the provided instrument (Text or Image). It is likely a Bill, Statement, Court Notice, or Credit Report.
-        
-        Extract into strict JSON format with this schema:
-        {
-          "instrumentType": "Bill" | "CreditReport" | "Notice" | "CourtPleading" | "Other",
-          "creditor": "Name of entity",
-          "accountNumber": "Account/Reference Number",
-          "caseNumber": "Case Number (if applicable)",
-          "amountDue": "Amount (if applicable)",
-          "dueDate": "Date (if applicable)",
-          "financialIdentifiers": {
-            "cusip": "Any CUSIP numbers found (9-character alphanumeric), or null",
-            "bondNumber": "Any other numbers explicitly labeled as a bond or security number, or null"
-          },
-          "coupon": {
-            "present": boolean,
-            "scanLine": "OCR of bottom scan line if present",
-            "codes": "Any specific codes found"
-          },
-          "creditReport": {
-            "bureau": "Equifax/Experian/TransUnion",
-            "negativeItems": ["List of accounts with late payments or collections"],
-            "score": "Credit Score if visible"
-          },
-          "summary": "Brief summary of the document content"
-        }`;
 
-        if (typeof input === 'string') {
+        if (typeof document === 'string') {
+            // Prepend the prompt to the user's text document
             contents = [
-                { role: 'user', parts: [{ text: `${prompt}\n\nInstrument Text:\n${input}` }] }
+                { role: 'user', parts: [{ text: `${prompt}\n\n${document}` }] }
             ];
         } else {
+            // For images/PDFs, send the prompt and the file data separately
             contents = [
                  { 
                     role: 'user', 
                     parts: [
                         { text: prompt },
-                        { inlineData: { mimeType: input.mimeType, data: input.data } }
+                        { inlineData: { mimeType: document.mimeType, data: document.data } }
                     ] 
                 }
             ];
         }
 
         const response = await ai.models.generateContent({
-            model: 'gemini-2.5-flash',
+            model: 'gemini-2.5-flash', // Using Flash for speed and cost-effectiveness
             contents: contents,
             config: {
-                responseMimeType: 'application/json'
+                responseMimeType: 'application/json',
+                temperature: 0.1, // Low temperature for deterministic, structured output
             }
         });
         return response.text;
     } catch (e) {
         console.error("JARVIS Extraction Error", e);
-        return JSON.stringify({ error: "Extraction failed or file type not supported." });
+        return JSON.stringify({
+          classification: { type: 'Unknown', intent: 'Unknown', riskLevel: 'High', requiredPersona: 'Representative' },
+          summary: 'The AI model failed to process the document. This could be due to a network error, an unsupported file format, or an internal AI issue. See the browser console for technical details.',
+          deadlines: [],
+          violations: [{ statute: 'Due Process', description: 'AI model failed to return a valid analysis.', severity: 'High' }],
+          recommendedRemedyId: null,
+          recommendedActions: ['Retry the analysis.', 'Check the file format and size.', 'Consult the error logs in the browser console.'],
+        });
     }
 };
 
@@ -158,6 +142,33 @@ export const dialogosScan = async (noticeText: string) => {
         return response.text || "";
     } catch (e) {
         console.error("Dialogos Scan Error", e);
-        return "Scanning unavailable.";
-    }
-};
+                return "Scanning unavailable.";
+            }
+        };
+        
+        export const getPredictiveAnalysis = async (missionContext: string) => {
+            try {
+                const response = await ai.models.generateContent({
+                    model: 'gemini-3-pro-preview', // Using Pro for complex strategic reasoning
+                    contents: `You are a master legal strategist. Analyze the following mission context and provide a predictive analysis.
+        
+                    **Mission Context:**
+                    ${missionContext}
+        
+                    **Analysis المطلوب:**
+                    1.  **Predicted Counter-Moves:** What are the 1-2 most likely responses or counter-moves from the opposing party (e.g., agency, corporation)?
+                    2.  **Potential Traps:** What are the hidden risks or potential traps in the current situation? (e.g., admitting jurisdiction, waiving rights).
+                    3.  **Strategic Recommendation:** What is the single most important tactical consideration for the user right now?
+        
+                    Be concise, direct, and actionable. Format the output as simple text with clear headings.`,
+                    config: {
+                      temperature: 0.5,
+                    }
+                });
+                return response.text || "Predictive analysis is currently unavailable.";
+            } catch (e) {
+                console.error("Predictive Analysis Error", e);
+                return "Predictive analysis failed.";
+            }
+        };
+        

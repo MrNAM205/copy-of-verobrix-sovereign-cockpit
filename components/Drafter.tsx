@@ -1,17 +1,43 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, useLocation } from 'react-router-dom';
 import { TEMPLATES } from '../data/templates';
-import { Template, ArchiveEntry, Trust } from '../types';
+import { Template, ArchiveEntry, Trust, SignatureMode, LegalCapacity } from '../types';
 import { useStore } from '../lib/store';
 
 interface DrafterProps {
   onArchive: (entry: ArchiveEntry) => void;
 }
 
+const getSignatureForMode = (persona: any, mode: SignatureMode): string => {
+    if (!persona) return '\n\n_________________________';
+
+    const individualName = `${persona.givenName}:${persona.familyName}`;
+    const statutoryName = persona.statutoryPersonaName;
+
+    switch (mode) {
+        case SignatureMode.INDIVIDUAL:
+            return `\n\nBy: _________________________\n${individualName}`;
+        case SignatureMode.REPRESENTATIVE:
+            return `\n\nBy: _________________________\n${statutoryName}\nBy: ${persona.givenName} ${persona.familyName}, Authorized Representative`;
+        case SignatureMode.TRUSTEE:
+            return `\n\nBy: _________________________\n${persona.givenName} ${persona.familyName}, Trustee`;
+        case SignatureMode.EXECUTOR:
+             return `\n\nBy: _________________________\n${persona.givenName} ${persona.familyName}, Executor`;
+        case SignatureMode.UCC_RESERVATION:
+            return `\n\nBy: _________________________\nWithout prejudice, UCC 1-308\n${individualName}`;
+        default:
+            return '\n\n_________________________';
+    }
+}
+
 const Drafter: React.FC<DrafterProps> = ({ onArchive }) => {
   const { templateId } = useParams<{ templateId: string }>();
   const location = useLocation();
-  const trusts = useStore((state) => state.trusts);
+  
+  // Persona & Capacity State from Zustand store
+  const { trusts, personas, activePersonaId, capacity } = useStore();
+  const activePersona = useMemo(() => personas.find(p => p.id === activePersonaId), [personas, activePersonaId]);
+
 
   const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(null);
   const [formData, setFormData] = useState<Record<string, string>>({});
@@ -63,12 +89,41 @@ const Drafter: React.FC<DrafterProps> = ({ onArchive }) => {
   };
 
   const generatePreview = () => {
-    if (!selectedTemplate) return;
+    if (!selectedTemplate || !activePersona) {
+        alert("Please create and select a Persona first.");
+        return;
+    }
+    
     let text = selectedTemplate.content;
-    selectedTemplate.fields.forEach(field => {
-      const value = formData[field.key] || `[${field.label.toUpperCase()}]`;
-      text = text.replace(new RegExp(`{{${field.key}}}`, 'g'), value);
+
+    // --- Persona-Aware Preamble ---
+    let capacityPreamble = '';
+    if(capacity.activeCapacity === LegalCapacity.REPRESENTATIVE) {
+        capacityPreamble = `NOTICE: The undersigned is appearing as the Authorized Representative for the statutory persona ${activePersona.statutoryPersonaName} and not in an individual capacity.\n\n`;
+    } else if (capacity.activeCapacity === LegalCapacity.INDIVIDUAL) {
+        capacityPreamble = `NOTICE: The undersigned, a private individual, is appearing in propria persona.\n\n`;
+    }
+    
+    text = capacityPreamble + text;
+    
+    // --- Template Field & Persona Data Replacement ---
+    const allReplacements = {
+        ...formData,
+        IndividualName: `${activePersona.givenName} ${activePersona.familyName}`,
+        StatutoryPersonaName: activePersona.statutoryPersonaName,
+        MailingAddress: activePersona.mailingAddress,
+        Domicile: activePersona.domicileDeclaration,
+        Date: new Date().toLocaleDateString(),
+    };
+
+    Object.keys(allReplacements).forEach(key => {
+      const value = allReplacements[key] || `[${key.toUpperCase()}]`;
+      text = text.replace(new RegExp(`{{${key}}}`, 'g'), value);
     });
+
+    // --- Append Dynamic Signature Block ---
+    text += getSignatureForMode(activePersona, capacity.activeSignatureMode);
+
     setPreview(text);
     setIsSealed(false);
   };
